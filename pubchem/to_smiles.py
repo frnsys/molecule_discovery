@@ -6,6 +6,41 @@ from rdkit import Chem
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 
+
+def pubmed_compounds():
+    """Get compound IDs with
+    associated PubMed papers"""
+    cids = set()
+    with open('CID-PMID', 'r') as f:
+        for line in f.readlines():
+            line = line.strip()
+            try:
+                cid, pmid, _ = line.split()
+            except:
+                print(line)
+                continue
+            cids.add(cid)
+    return cids
+
+def get_pubmed(pmid):
+    """Get PubMed info for a given PMID"""
+    resp = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi', params={
+        'db': 'pubmed',
+        'retmode': 'json',
+        'id': pmid
+    })
+    meta = resp.json()
+    resp = requests.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi', params={
+        'db': 'pubmed',
+        'retmode': 'text',
+        'rettype': 'abstract',
+        'id': pmid
+    })
+    abst = resp.content
+    meta = meta['result'][str(pmid)]
+    title = meta['title']
+    return title, meta, abst
+
 def get_uses(mol_id):
     """
     Note on request limits:
