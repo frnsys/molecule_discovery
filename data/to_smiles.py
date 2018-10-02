@@ -7,7 +7,7 @@ from rdkit import Chem
 UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 
 
-def pubmed_compounds():
+def get_pubmed_cids():
     """Get compound IDs with
     associated PubMed papers"""
     cids = set()
@@ -19,7 +19,7 @@ def pubmed_compounds():
             except:
                 print(line)
                 continue
-            cids.add(cid)
+            cids.add(int(cid))
     return cids
 
 def get_pubmed(pmid):
@@ -70,9 +70,19 @@ if __name__ == '__main__':
     if not os.path.exists('smiles'):
         os.makedirs('smiles')
 
+    pubmed_cids = get_pubmed_cids()
+    print(len(pubmed_cids), 'PubMed compounds')
+
     for sdf in tqdm(glob('sdf/*.sdf')):
         path, _ = os.path.splitext(sdf)
         fname = os.path.basename(path)
+
+        # Skip SDF files that don't include a PubMed compound
+        _, range_l, range_u = fname.split('_')
+        range_l, range_u = int(range_l), int(range_u)
+        if not any(cid >= range_l and cid <= range_u for cid in pubmed_cids):
+            continue
+
         output = os.path.join('smiles', '{}.smi'.format(fname))
         if os.path.exists(output):
             continue
@@ -80,7 +90,9 @@ if __name__ == '__main__':
         suppl = Chem.SDMolSupplier(sdf)
         for mol in suppl:
             if mol is None: continue
-            # mol_id = mol.GetProp('PUBCHEM_COMPOUND_CID')
+            mol_id = int(mol.GetProp('PUBCHEM_COMPOUND_CID'))
+            if mol_id not in pubmed_cids:
+                continue
             smiles.append(Chem.MolToSmiles(mol, isomericSmiles=True))
         with open(output, 'w') as f:
             f.write('\n'.join(smiles))
