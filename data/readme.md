@@ -5,7 +5,7 @@ At time of writing:
 - there are 8,659,712 PubMed articles associated with compounds.
 - there are 2,150,543 Open Access PubMed articles.
 
-To download PubChem compound SDF data (_warning: requires ~600GB of space_) and PubMed Open Access articles (_warning: requires ~ of space_):
+To download PubChem compound SDF data (_warning: requires ~600GB of space_) and PubMed Open Access articles (_warning: requires ~210GB of space_):
 
 - `python get_urls.py` to get download URLs from PubChem and PubMed
 - `bash download.sh` to download and extract the SDF data and PubMed articles
