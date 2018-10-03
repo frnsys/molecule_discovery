@@ -28,7 +28,14 @@ def sim(X, Y):
 
 
 if __name__ == '__main__':
-    a = np.random.random((5,8)).T
-    b = np.random.random((5,12)).T
+    a = np.random.random((8,5))
+    b = np.random.random((12,5))
+    c = np.vstack([
+        [1,2,3,8,8],
+        [4,5,6,8,8],
+        [7,8,9,8,8],
+        [8,8,8,8,8]
+    ])
     print(sim(a,b))
     print(sim(a,a))
+    print(sim(a,c))

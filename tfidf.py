@@ -8,6 +8,7 @@ from tqdm import tqdm
 from collections import defaultdict
 import msgpack_numpy as m
 import msgpack
+from similarity import sim
 
 def enc_arr(arr):
     return msgpack.packb(arr, default=m.encode)
@@ -70,7 +71,8 @@ for tok, count in idf.items():
 
 
 # Compute TF-IDFs
-mats = {}
+pmid_idx = {}
+mats = []
 for pmid, toks in tok_docs:
     embeddings = []
     for tok in set(toks):
@@ -84,4 +86,22 @@ for pmid, toks in tok_docs:
     # Not sure if this is the best way to save all these matrices
     # TODO maybe should just go ahead and compute the distance matrix here
     # without saving these representations? depends on run time
-    mats[pmid] = enc_arr(D)
+    # mats[pmid] = enc_arr(D)
+    pmid_idx[pmid] = len(mats)
+    mats.append(D)
+
+def symmetrize(a):
+    return a + a.T - np.diag(a.diagonal())
+
+# Compute distance matrix
+dist_mat = np.zeros((len(mats), len(mats)))
+for i, X in enumerate(mats):
+    for j, Y in enumerate(mats):
+        d = sim(X, Y)
+        dist_mat[i, j] = d
+        if j > i:
+            break
+dist_mat = symmetrize(dist_mat)
+
+# TODO
+# cluster using DBSCAN
