@@ -3,6 +3,7 @@ import requests
 from tqdm import tqdm
 from glob import glob
 from rdkit import Chem
+from multiprocessing import Pool
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 
@@ -66,6 +67,31 @@ def get_uses(mol_id):
     return uses
 
 
+def to_smiles(sdf):
+    path, _ = os.path.splitext(sdf)
+    fname = os.path.basename(path)
+
+    # Skip SDF files that don't include a PubMed compound
+    _, range_l, range_u = fname.split('_')
+    range_l, range_u = int(range_l), int(range_u)
+    if not any(cid >= range_l and cid <= range_u for cid in pubmed_cids):
+        return
+
+    output = os.path.join('smiles', '{}.smi'.format(fname))
+    if os.path.exists(output):
+        return
+    smiles = []
+    suppl = Chem.SDMolSupplier(sdf)
+    for mol in suppl:
+        if mol is None: continue
+        mol_id = int(mol.GetProp('PUBCHEM_COMPOUND_CID'))
+        if mol_id not in pubmed_cids:
+            continue
+        smile = Chem.MolToSmiles(mol, isomericSmiles=True)
+        smiles.append('{}\t{}'.format(mol_id, smile))
+    with open(output, 'w') as f:
+        f.write('\n'.join(smiles))
+
 if __name__ == '__main__':
     if not os.path.exists('smiles'):
         os.makedirs('smiles')
@@ -73,26 +99,8 @@ if __name__ == '__main__':
     pubmed_cids = get_pubmed_cids()
     print(len(pubmed_cids), 'PubMed compounds')
 
-    for sdf in tqdm(glob('sdf/*.sdf')):
-        path, _ = os.path.splitext(sdf)
-        fname = os.path.basename(path)
-
-        # Skip SDF files that don't include a PubMed compound
-        _, range_l, range_u = fname.split('_')
-        range_l, range_u = int(range_l), int(range_u)
-        if not any(cid >= range_l and cid <= range_u for cid in pubmed_cids):
-            continue
-
-        output = os.path.join('smiles', '{}.smi'.format(fname))
-        if os.path.exists(output):
-            continue
-        smiles = []
-        suppl = Chem.SDMolSupplier(sdf)
-        for mol in suppl:
-            if mol is None: continue
-            mol_id = int(mol.GetProp('PUBCHEM_COMPOUND_CID'))
-            if mol_id not in pubmed_cids:
-                continue
-            smiles.append(Chem.MolToSmiles(mol, isomericSmiles=True))
-        with open(output, 'w') as f:
-            f.write('\n'.join(smiles))
+    files = glob('sdf/*.sdf')
+    p = Pool(4)
+    for _ in tqdm(p.imap(to_smiles, files), total=len(files)):
+        pass
+    p.close()
