@@ -3,7 +3,7 @@ import requests
 from tqdm import tqdm
 from glob import glob
 from rdkit import Chem
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     print(len(pubmed_cids), 'PubMed compounds')
 
     files = glob('sdf/*.sdf')
-    p = Pool(4)
+    p = Pool(cpu_count())
     for _ in tqdm(p.imap(to_smiles, files), total=len(files)):
         pass
     p.close()
