@@ -21,10 +21,24 @@ tf = defaultdict(lambda: defaultdict(int))
 
 thresh = 0.15
 
+# TODO this is redundant from data/filter_pubmed.py
+pmids = set()
+with open('CID-PMID', 'r') as f:
+    for line in tqdm(f.readlines()):
+        line = line.strip()
+        try:
+            cid, pmid, _ = line.split()
+            pmids.add(pmid)
+        except:
+            print(line)
+
+
 def docs():
     with open('tokens.dat', 'r') as f:
         for line in f.readlines():
-            yield json.loads(line)
+            data = json.loads(line)
+            if data['pmid'] in pmids:
+                yield data
 
 # TESTING
 # docs = [{
