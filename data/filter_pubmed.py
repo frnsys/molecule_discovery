@@ -1,3 +1,4 @@
+import json
 from tqdm import tqdm
 from glob import glob
 import pubmed_parser as pp
@@ -12,16 +13,19 @@ with open('CID-PMID', 'r') as f:
         except:
             print(line)
 
-paths = []
+datas = []
 for path in tqdm(glob('pubmed/**/*.nxml')):
     article = pp.parse_pubmed_xml(path)
     pmid = article['pmid']
     if pmid not in pmids:
         continue
-    title = article['full_title']
-    abstract = article['abstract']
-    paths.append(path)
+    data = {
+        'pmid': pmid,
+        'title': article['full_title'],
+        'abstract': article['abstract']
+    }
+    datas.append(json.dumps(data))
 
-print(len(paths), 'found')
-with open('pubmed_paths.txt', 'w') as f:
-    f.write('\n'.join(paths))
+print(len(datas), 'found')
+with open('pubmed.dat', 'w') as f:
+    f.write('\n'.join(datas))
