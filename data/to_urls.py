@@ -2,7 +2,6 @@
 Extract SDF download urls
 from pubchem FTP directory
 """
-
 import requests
 import lxml.html
 
