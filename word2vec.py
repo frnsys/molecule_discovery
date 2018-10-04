@@ -157,6 +157,10 @@ class Word2Vec(object):
     self.build_graph()
     self.save_vocab()
 
+    if os.path.exists(options.save_path):
+        self.saver.restore(session, tf.train.latest_checkpoint(options.save_path))
+
+
   def forward(self, examples, labels):
     """Build the graph for the forward pass."""
     opts = self._options
