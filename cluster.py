@@ -3,12 +3,14 @@ import math
 import numpy as np
 from tqdm import tqdm
 from distance import dist
+from itertools import product
 from collections import defaultdict
 from sklearn.cluster import dbscan
+# from pyclustering.cluster.optics import optics;
 
 
 max_n = 1000
-thresh = 0.005
+thresh = 0.02 # 0.005
 
 vocab = open('data/vocab.txt', 'r').read().split('\n')
 embeddings = np.load('data/embeddings.npy', allow_pickle=False)
@@ -20,10 +22,10 @@ tf = defaultdict(lambda: defaultdict(int))
 
 def stream():
     with open('data/pubmed.dat', 'r') as f:
-        for i, line in enumerate(f.readlines()):
-            yield json.loads(line)
+        for i, line in enumerate(f):
             if i >= max_n:
                 break
+            yield json.loads(line)
 
 # Compute document frequencies
 # and term frequencies
@@ -68,33 +70,41 @@ for pmid, toks in tqdm(tok_docs):
                 continue
             em = embeddings[tid]
             ems.append(em)
-    D = np.vstack(ems)
+    try:
+        D = np.vstack(ems)
+    except ValueError:
+        # Documents can't be empty
+        D = np.vstack([embeddings[tok2id['UNK']]])
 
-    # Not sure if this is the best way to save all these matrices
-    # TODO maybe should just go ahead and compute the distance matrix here
-    # without saving these representations? depends on run time
-    # mats[pmid] = enc_arr(D)
     pmid_idx[pmid] = len(mats)
     mats.append(D)
 
 def symmetrize(a):
     return a + a.T - np.diag(a.diagonal())
 
+
 # Compute distance matrix
 print('Computing distance matrix...')
-dist_mat = np.zeros((len(mats), len(mats)), dtype=np.float32)
-for i, X in tqdm(enumerate(mats), total=len(mats)):
-    for j, Y in enumerate(mats):
-        if i == j:
-            dist_mat[i, j] = 0
-        else:
-            d = dist(X, Y)
-            dist_mat[i, j] = d
-            if j > i:
-                break
+n = len(mats)
+# dist_mat = np.zeros((n, n), dtype=np.float32)
+dist_mat = np.memmap('dists.dat', dtype='float32', mode='w+', shape=(n,n))
+
+def indices(n):
+    for i, j in product(range(n), range(n)):
+        if j < i: yield i, j
+
+total = ((n*n)-n)/2
+for i, j in tqdm(indices(n), total=total):
+    dist_mat[i, j] = dist(mats[i], mats[j])
+
 dist_mat = symmetrize(dist_mat)
+# np.save(dist_mat, 'dists.npy', allow_pickle=False)
 
-print('Clustering...')
-_, labels = dbscan(dist_mat, eps=0.1, min_samples=5, metric='precomputed', n_jobs=-1)
+# print('Clustering...')
+_, labels = dbscan(dist_mat, eps=1., min_samples=5, metric='precomputed', n_jobs=-1)
+print(len(labels))
+# opt = optics(dist_mat, eps=1., minpts=5, data_type='distance_matrix')
+# opt.process()
+# clusters = opt.get_clusters();
 
-import ipdb; ipdb.set_trace()
+# import ipdb; ipdb.set_trace()

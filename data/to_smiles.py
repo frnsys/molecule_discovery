@@ -7,7 +7,7 @@ from multiprocessing import Pool
 # Get PubMed CIDs
 cids = set()
 with open('CID-PMID', 'r') as f:
-    for line in f.readlines():
+    for line in tqdm(f):
         line = line.strip()
         cid, pmid, _ = line.split()
         cids.add(int(cid))

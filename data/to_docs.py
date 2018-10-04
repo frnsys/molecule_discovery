@@ -9,7 +9,7 @@ nlp = spacy.load('en_core_web_sm')
 # Get PubMed PMIDs
 pmids = set()
 with open('CID-PMID', 'r') as f:
-    for line in tqdm(f.readlines()):
+    for line in tqdm(f):
         line = line.strip()
         cid, pmid, _ = line.split()
         pmids.add(pmid)
