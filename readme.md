@@ -1,4 +1,11 @@
-Data sources:
+# Setup
+
+```
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
+
+# Data sources
 
 - <ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/SDF/>
 - <ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Patent.gz>

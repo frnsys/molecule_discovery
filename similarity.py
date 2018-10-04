@@ -3,7 +3,7 @@ import numpy as np
 
 SQRT2 = math.sqrt(2)
 
-# Using RV coefficient, as described in the WISDM paper
+# Using RV coefficient as basis for similarity, as described in the WISDM paper
 def RV(X, Y):
     # <https://www.utdallas.edu/~herve/Abdi-RV2007-pretty.pdf>
     S_11 = np.matmul(X,X.T)
