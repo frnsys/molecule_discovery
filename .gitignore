@@ -1,3 +1,5 @@
+*.npy
+*.txt
 *.dat
 *.tar.gz
 smiles

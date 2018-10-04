@@ -19,12 +19,19 @@ def RV(X, Y):
     return n/math.sqrt(d)
 
 
-def sim(X, Y):
+def dist(X, Y):
     rv = RV(X,Y)
+
+    # Sometimes due to floating pt precision,
+    # this is slightly above 1
+    rv = min(rv, 1)
+
     # Convert to dissimilarity
     # <https://www.researchgate.net/profile/Francois_Husson/publication/255569780_Testing_the_signiflcance_of_the_RV_coefficient/links/5548e4250cf205bce7abfba0/Testing-the-signiflcance-of-the-RV-coefficient.pdf>
-    dis = SQRT2 * math.sqrt(1 - rv)
-    return 1 - dis
+    return SQRT2 * math.sqrt(1 - rv)
+
+def sim(X, Y):
+    return 1 - dist(X, Y)
 
 
 if __name__ == '__main__':
