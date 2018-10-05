@@ -32,3 +32,10 @@ Attempts:
 # References
 
 1. Botev, Viktor, Kaloyan Marinov, and Florian Schäfer. "Word importance-based similarity of documents metric (WISDM): Fast and scalable document similarity metric for analysis of scientific documents." Proceedings of the 6th International Workshop on Mining Scientific Publications. ACM, 2017
+2. Jin, Wengong, Regina Barzilay, and Tommi Jaakkola. "Junction Tree Variational Autoencoder for Molecular Graph Generation." arXiv preprint arXiv:1802.04364 (2018).
+3. Kusner, Matt J., Brooks Paige, and José Miguel Hernández-Lobato. "Grammar variational autoencoder." arXiv preprint arXiv:1703.01925 (2017).
+4. Goh, Garrett B., Nathan O. Hodas, and Abhinav Vishnu. "Deep learning for computational chemistry." Journal of computational chemistry 38.16 (2017): 1291-1307.
+5. Yang, Xiufeng, et al. "ChemTS: an efficient python library for de novo molecular generation." Science and technology of advanced materials 18.1 (2017): 972-976.
+6. Liu, Yue, et al. "Materials discovery and design using machine learning." Journal of Materiomics 3.3 (2017): 159-177.
+7. Segler, Marwin HS, Mike Preuss, and Mark P. Waller. "Planning chemical syntheses with deep neural networks and symbolic AI." Nature 555.7698 (2018): 604.
+8. Kim, Edward, et al. "Virtual screening of inorganic materials synthesis parameters with deep learning." npj Computational Materials 3.1 (2017): 53.
