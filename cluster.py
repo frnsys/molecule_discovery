@@ -1,3 +1,12 @@
+"""
+Cluster documents based on a mixture of TF-IDF and word2vec embeddings,
+as described in:
+
+Botev, Viktor, Kaloyan Marinov, and Florian Schäfer. "Word importance-based similarity of documents metric (WISDM):
+    Fast and scalable document similarity metric for analysis of scientific documents."
+    Proceedings of the 6th International Workshop on Mining Scientific Publications. ACM, 2017.
+"""
+
 import json
 import math
 import numpy as np
@@ -79,15 +88,12 @@ for pmid, toks in tqdm(tok_docs):
     pmid_idx[pmid] = len(mats)
     mats.append(D)
 
-def symmetrize(a):
-    return a + a.T - np.diag(a.diagonal())
-
 
 # Compute distance matrix
 print('Computing distance matrix...')
 n = len(mats)
 # dist_mat = np.zeros((n, n), dtype=np.float32)
-dist_mat = np.memmap('dists.dat', dtype='float32', mode='w+', shape=(n,n))
+dist_mat = np.memmap('dists.dat', dtype=np.float32, mode='w+', shape=(n,n))
 
 def indices(n):
     for i, j in product(range(n), range(n)):
@@ -97,12 +103,17 @@ total = ((n*n)-n)/2
 for i, j in tqdm(indices(n), total=total):
     dist_mat[i, j] = dist(mats[i], mats[j])
 
+def symmetrize(a):
+    return a + a.T - np.diag(a.diagonal())
+
 dist_mat = symmetrize(dist_mat)
 # np.save(dist_mat, 'dists.npy', allow_pickle=False)
 
 print('Clustering...')
 _, labels = dbscan(dist_mat, eps=1., min_samples=5, metric='precomputed', n_jobs=-1)
 print(len(labels))
+
+# Alternatively, OPTICS instead of DBSCAN
 # opt = optics(dist_mat, eps=1., minpts=5, data_type='distance_matrix')
 # opt.process()
 # clusters = opt.get_clusters();
