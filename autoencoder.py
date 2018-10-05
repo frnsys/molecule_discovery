@@ -94,8 +94,13 @@ inputs = layers.embed_sequence(
 
 # Encoder
 cell = tf.contrib.rnn.LSTMCell(num_units=params['num_units'])
-encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(cell, inputs, dtype=tf.float32)
-# enc_out, enc_state = tf.nn.birectional_dynamic_rnn(cell, cell, inputs)
+
+# Regular LSTM
+# encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(cell, inputs, dtype=tf.float32)
+
+# Bidirectional LSTM
+encoder_outputs, encoder_final_state = tf.nn.bidirectional_dynamic_rnn(cell, cell, inputs, dtype=tf.float32)
+encoder_outputs = tf.concat(encoder_outputs, 2)
 
 # Prepare output
 start_tokens = tf.zeros([params['batch_size']], dtype=tf.int32)
