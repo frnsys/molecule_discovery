@@ -100,11 +100,9 @@ for i, j in tqdm(indices(n), total=total):
 dist_mat = symmetrize(dist_mat)
 # np.save(dist_mat, 'dists.npy', allow_pickle=False)
 
-# print('Clustering...')
+print('Clustering...')
 _, labels = dbscan(dist_mat, eps=1., min_samples=5, metric='precomputed', n_jobs=-1)
 print(len(labels))
 # opt = optics(dist_mat, eps=1., minpts=5, data_type='distance_matrix')
 # opt.process()
 # clusters = opt.get_clusters();
-
-# import ipdb; ipdb.set_trace()
