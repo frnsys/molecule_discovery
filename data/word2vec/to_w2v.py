@@ -4,7 +4,7 @@ import json
 from tqdm import tqdm
 
 with open('w2v.txt', 'w') as w:
-    with open('pubmed.dat', 'r') as f:
+    with open('../pubmed.dat', 'r') as f:
         texts = []
         for i, line in tqdm(enumerate(f)):
             doc = json.loads(line)

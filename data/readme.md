@@ -15,4 +15,3 @@ To generate derived data (_warning: this will take a several hours, days even_):
 
 1. `python to_smiles.py` to convert SDF data for compounds with associated PubMed articles into SMILES format. Results in a `smiles` folder.
 2. `python to_docs.py` to filter PubMed articles to those with PubChem compounds and extract and tokenize their titles and abstracts. Results in a `pubmed.dat` file.
-3. `python to_w2v.py` to generate a word2vec training document from `pubmed.dat`. Results in a `w2v.txt` file.
