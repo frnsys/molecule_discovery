@@ -1,5 +1,6 @@
 # sudo apt install -y libxml2-dev zlib1g-dev
 # http://ggigraph.org/python/doc/igraph.Graph-class.html
+import os
 import igraph
 import numpy as np
 from tqdm import tqdm
@@ -18,14 +19,17 @@ def filter_outliers(data, m=2, key=lambda v: v):
     thresh = m * np.std(vals)
     return {k: v for k, v in data.items() if abs(key(v) - mean) < thresh}
 
+if not os.path.exists('data/graph'):
+    os.makedirs('data/graph')
+
 # Group documents mentioning compounds
-cids = load_cid2doc(['CID-PMID', 'CID-Patent'], limit=limit)
+# Not including patents b/c of memory constraints
+cids = load_cid2doc(articles=True, patents=False, limit=limit)
 
 counts = [len(v) for v in cids.values()]
 print(len(cids), 'compounds')
 print(max(counts), 'most articles for an compound')
 print(np.mean(counts), 'mean articles for an compound')
-
 
 # Reduce number of compounds
 # Require at least 10 mentions
@@ -51,7 +55,7 @@ print(len(groups), 'articles after filtering')
 n_cids = len(cids)
 id2cid = list(cids.keys())
 cid2id = {cid: id for id, cid in enumerate(id2cid)}
-with open('cids.idx', 'w') as f:
+with open('data/graph/cids.idx', 'w') as f:
     f.write('\n'.join([str(cid) for cid in id2cid]))
 
 # Create adjacency matrix
@@ -63,7 +67,7 @@ for cids in tqdm(groups.values()):
         j = cid2id[cid_b]
         adj_mat[i, j] += 1
         adj_mat[j, i] += 1
-sparse.save_npz('adj.npz', adj_mat.tocsr(), compressed=True)
+sparse.save_npz('data/graph/adj.npz', adj_mat.tocsr(), compressed=True)
 
 # Create graph
 print('Creating graph...')
@@ -81,5 +85,5 @@ comms = defaultdict(list)
 for i, label in enumerate(labels):
     comms[label].append(i)
 
-with open('labels.dat', 'w') as f:
+with open('data/graph/labels.dat', 'w') as f:
     f.write('\n'.join([','.join(str(id) for id in ids) for ids in comms.values()]))

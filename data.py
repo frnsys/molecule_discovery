@@ -17,7 +17,7 @@ def stream_tokens(limit=None):
         pmid = doc['pmid']
         toks = doc['toks']
         toks = [t.lower() for t in toks['title'] + toks['abstract']]
-        yield pmid, toks
+        yield int(pmid), toks
 
 
 def load_cid2doc(articles=True, patents=False, limit=None):
@@ -31,4 +31,4 @@ def load_cid2doc(articles=True, patents=False, limit=None):
         for line in tqdm(stream_file('data/CID-Patent', limit)):
             cid, ptid = line.strip().split('\t')
             cids[int(cid)].append(ptid)
-    return cids
+    return dict(cids)
