@@ -11,12 +11,16 @@ def stream_file(path, limit=None):
             yield line
 
 
-def stream_tokens(limit=None):
+def stream_tokens(limit=None, titles_only=False):
     for line in tqdm(stream_file('data/pubmed.dat', limit)):
         doc = json.loads(line)
         pmid = doc['pmid']
         toks = doc['toks']
-        toks = [t.lower() for t in toks['title'] + toks['abstract']]
+        if titles_only:
+            toks = toks['title']
+        else:
+            toks = toks['title'] + toks['abstract']
+        toks = [t.lower() for t in toks]
         yield int(pmid), toks
 
 
