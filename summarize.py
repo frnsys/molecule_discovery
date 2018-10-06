@@ -30,13 +30,14 @@ sizes = [len(c) for c in clusters]
 print('Mean size for size>1:', np.mean(sizes))
 print('Std size for size>1:', np.std(sizes))
 
-tf, idf = tf_idf(stream_tokens(titles_only=True))
-articles = dict(stream_tokens(titles_only=True))
+tf, idf = tf_idf(stream_tokens(titles_only=False))
+articles = dict(stream_tokens(titles_only=False))
 
 summaries = []
 n_compounds = 0
 for clus in tqdm(clusters):
     toks = defaultdict(int)
+    arts = set()
     for id in clus:
         cid = int(id2cid[id])
         pmids = cid2pmid[cid]
@@ -46,6 +47,7 @@ for clus in tqdm(clusters):
             # in which case we won't have tokens
             for tok in articles.get(pmid, []):
                 toks[tok] += tf[pmid][tok] * idf[tok]
+            arts.add(pmid)
     toks = sorted(toks.items(), key=lambda x: x[1], reverse=True)
     summary = toks[:50]
     if summary:
@@ -53,14 +55,18 @@ for clus in tqdm(clusters):
         n_compounds += len(compounds)
         summaries.append({
             'compounds': compounds,
-            'summary': summary
+            'summary': summary,
+            'articles': ['https://www.ncbi.nlm.nih.gov/pubmed/?term={}'.format(pmid) for pmid in arts]
         })
 
-with open('data/summaries.txt', 'a') as f:
-    f.write('Final cluster count is {} across {} compounds\n\n'.format(len(summaries), n_compounds))
+with open('data/summaries.txt', 'w') as f:
+    cluster_summaries = [
+        'Final cluster count is {} across {} compounds\n\n'.format(len(summaries), n_compounds)]
     for summary in summaries:
         parts = [
             'Compounds: {}'.format(', '.join([str(cid) for cid in summary['compounds']])),
-            'Terms: {}'.format(', '.join([t for t, score in summary['summary']]))
+            'Terms: {}'.format(', '.join([t for t, score in summary['summary']])),
+            'Articles:\n{}'.format('\n'.join(summary['articles']))
         ]
-        f.write('\n'.join(parts) + '\n\n')
+        cluster_summaries.append('\n'.join(parts))
+    f.write('\n\n'.join(cluster_summaries))
