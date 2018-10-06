@@ -3,12 +3,32 @@ LSTM autoencoder for learning word and document embeddings
 
 Adapted from: <https://github.com/ilblackdragon/tf_examples/tree/master/seq2seq>
 """
-
+import os
+import json
+import numpy as np
 import tensorflow as tf
 from tensorflow.contrib import layers
+from collections import defaultdict
+from tqdm import tqdm
 
-import json
-# max_n = 100
+model_dir = 'autoenc_model'
+epochs = 10
+params = {
+    'batch_size': 32,
+    'embed_dim': 100,
+    'num_units': 256,
+    'optimizer': 'Adam',
+    'learning_rate': 0.001,
+
+    # Can manually set or automatically determine below
+    'max_length': None
+}
+
+if not os.path.exists(model_dir):
+    os.makedirs(model_dir)
+
+with open(os.path.join(model_dir, 'params.json'), 'w') as f:
+    json.dump(params, f)
 
 def stream():
     with open('data/pubmed.dat', 'r') as f:
@@ -18,40 +38,36 @@ def stream():
             yield json.loads(line)
 
 # Build vocab
-from collections import defaultdict
-min_vocab_count = 1
-docs = [d for d in stream()]
+print('Preparing vocab...')
+min_vocab_count = 8
 vocab = defaultdict(int)
-for doc in docs:
+doc_lengths = []
+for doc in tqdm(stream()):
     toks = doc['toks']
     toks = [t.lower() for t in toks['title'] + toks['abstract']]
-    for tok in toks:
+    doc_lengths.append(len(toks))
+    for tok in set(toks):
         vocab[tok] += 1
 vocab = ['UNK', '</S>'] + [t for t, c in vocab.items() if c >= min_vocab_count]
 vocab2id = {v: i for i, v in enumerate(vocab)}
-with open('vocab.dat', 'w') as f:
+with open(os.path.join(model_dir, 'vocab.dat'), 'w') as f:
     f.write('\n'.join(vocab))
+print('Vocab size:', len(vocab))
 
 UNK = 0
 END = 1
+params['vocab_size'] = len(vocab)
+if params['max_length'] is None:
+    params['max_length'] = int(round(np.mean(doc_lengths) + np.std(doc_lengths)))
 
 def gen():
-    for doc in docs:
+    for doc in stream():
         toks = doc['toks']
         toks = [t.lower() for t in toks['title'] + toks['abstract']]
+        toks = toks[:params['max_length'] - 1]
         doc = [vocab2id.get(tok, UNK) for tok in toks] + [END]
         yield doc
 
-model_dir = 'testing_save'
-epochs = 10
-params = {
-    'vocab_size': len(vocab),
-    'batch_size': 64,
-    'embed_dim': 128,
-    'num_units': 256,
-    'optimizer': 'Adam',
-    'learning_rate': 0.001
-}
 
 ds = tf.data.Dataset.from_generator(gen, output_types=tf.int32)
 ds = ds.shuffle(buffer_size=params['batch_size']*10)
@@ -142,6 +158,7 @@ pred_helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
     embeddings, start_tokens=start_tokens, end_token=END)
 pred_outputs = decoder(pred_helper, encoder_outputs, params, reuse=True)
 
+print('Training...')
 step_counter = tf.train.StepCounterHook(every_n_steps=100)
 logger = tf.train.LoggingTensorHook({'loss': loss_op}, every_n_iter=10)
 tf.logging.set_verbosity(tf.logging.INFO)
