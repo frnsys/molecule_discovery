@@ -10,8 +10,8 @@ python -m spacy download en_core_web_sm
 Attempts:
 
 - Training word2vec embeddings on PubMed titles and abstracts, with document representations assembled from these embeddings based on token TF-IDF scores, as described in [1], and then clustering using DBSCAN or OPTICS.
-    - See `data/word2vec` for a modified TensorFlow word2vec skip-gram training script
-    - See `data/cluster` for the WISDM and clustering script
+    - See `word2vec` for a modified TensorFlow word2vec skip-gram training script
+    - See `cluster` for the WISDM and clustering script
     - Outcome: way too slow and memory intensive. Generating the distance matrix for DBSCAN/OPTICS would take an extremely long time. The RV coefficient, which is used for document similarity in the WISDM paper, is not a drop-in replacement for the distance metrics used in other clustering algorithms. The RV coefficient is useful because these document representations are not vectors of fixed shapes, but rather are matrices where each document may have a different shape, and standard distance metrics can't be used here.
 - Generating a compound graph where nodes are compounds and an edge between compounds `A` and `B` represent co-mentions of `A` and `B` in some PubMed article or a patent. So instead of linking compounds based on the content of the articles they're mentioned in, they're linked solely on the virtue of being mentioned together in an article, under the assumption that this indicates some meaningful similarity. Once the graph is generated, a community detection algorithm (label propagation) is used to extract "clusters" from the graph.
     - See `graph.py` for this approach.
@@ -41,3 +41,4 @@ Attempts:
 8. Kim, Edward, et al. "Virtual screening of inorganic materials synthesis parameters with deep learning." npj Computational Materials 3.1 (2017): 53.
 9. Josse, Julie, Jérome Pagès, and François Husson. "Testing the significance of the RV coefficient." Computational Statistics & Data Analysis 53.1 (2008): 82-91.
 10. Cordasco, Gennaro, and Luisa Gargano. "Community detection via semi-synchronous label propagation algorithms." Business Applications of Social Network Analysis (BASNA), 2010 IEEE International Workshop on. IEEE, 2010.
+11. [Community Detection in Python](https://yoyoinwanderland.github.io/2017/08/08/Community-Detection-in-Python/#No-of-Community-Detection-Algorithms)

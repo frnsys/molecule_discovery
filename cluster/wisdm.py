@@ -7,23 +7,15 @@ Botev, Viktor, Kaloyan Marinov, and Florian Schäfer. "Word importance-based sim
     Proceedings of the 6th International Workshop on Mining Scientific Publications. ACM, 2017.
 """
 
-import json
-import math
 import numpy as np
 from tqdm import tqdm
 from distance import dist
 from itertools import product
-from collections import defaultdict
 from sklearn.cluster import dbscan
+from tfidf import tf_idf
+from data import stream_tokens
 # from pyclustering.cluster.optics import optics;
 
-
-def stream(max_n):
-    with open('data/pubmed.dat', 'r') as f:
-        for i, line in enumerate(f):
-            if max_n is not None and i >= max_n:
-                break
-            yield json.loads(line)
 
 def symmetrize(a):
     return a + a.T - np.diag(a.diagonal())
@@ -34,48 +26,21 @@ def indices(n):
 
 
 if __name__ == '__main__':
-    max_n = 1000
+    limit = 1000
     tfidf_thresh = 0.02
 
     vocab = open('data/vocab.txt', 'r').read().split('\n')
     embeddings = np.load('data/embeddings.npy', allow_pickle=False)
     tok2id = {tok: i for i, tok in enumerate(vocab)}
 
-    idf = defaultdict(int)
-    tf = defaultdict(lambda: defaultdict(int))
-
-    # Compute document frequencies
-    # and term frequencies
-    print('Computing DFs and TFs...')
-    tok_docs = []
-    for doc in tqdm(stream(max_n)):
-        pmid = doc['pmid']
-        toks = doc['toks']
-        toks = [t.lower() for t in toks['title'] + toks['abstract']]
-
-        # Term counts
-        for tok in toks:
-            tf[pmid][tok] += 1
-
-        # Document frequencies
-        # and set term frequencies
-        for tok in set(toks):
-            idf[tok] += 1
-            tf[pmid][tok] /= len(toks)
-        tok_docs.append((pmid, toks))
-
-    # Compute (smoothed) inverse document frequencies
-    print('Computing IDFs...')
-    N = len(tok_docs) + 1
-    for tok, count in tqdm(idf.items()):
-        idf[tok] = math.log(1+(N/count))
+    tf, idf = tf_idf(stream_tokens(limit))
 
     # Compute TF-IDFs
     # and create doc representations
     print('Creating doc matrices...')
     pmid_idx = {}
     mats = []
-    for pmid, toks in tqdm(tok_docs):
+    for pmid, toks in tqdm(stream_tokens(limit)):
         ems = []
         for tok in set(toks):
             tfidf = tf[pmid][tok] * idf[tok]

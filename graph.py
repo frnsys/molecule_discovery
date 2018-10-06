@@ -1,15 +1,16 @@
+# sudo apt install -y libxml2-dev zlib1g-dev
+# http://ggigraph.org/python/doc/igraph.Graph-class.html
+import igraph
 import numpy as np
-import networkx as nx
 from tqdm import tqdm
 from scipy import sparse
 from itertools import combinations
 from collections import defaultdict
-from networkx.algorithms import community
+from data import load_cid2doc
 
 m = 2
-test_max = None
-# test_max = 100000
-
+limit = None
+# limit = 100000
 
 def filter_outliers(data, m=2, key=lambda v: v):
     vals = np.array([key(v) for v in data.values()])
@@ -17,23 +18,8 @@ def filter_outliers(data, m=2, key=lambda v: v):
     thresh = m * np.std(vals)
     return {k: v for k, v in data.items() if abs(key(v) - mean) < thresh}
 
-
 # Group documents mentioning compounds
-cids = defaultdict(list)
-
-with open('CID-PMID', 'r') as f:
-    for i, line in enumerate(tqdm(f)):
-        if test_max and i > test_max:
-            break
-        cid, pmid, _ = line.strip().split()
-        cids[int(cid)].append('{}_{}'.format('pm', pmid))
-
-with open('CID-Patent', 'r') as f:
-    for i, line in enumerate(tqdm(f)):
-        if test_max and i > test_max:
-            break
-        cid, ptid = line.strip().split('\t')
-        cids[int(cid)].append('{}_{}'.format('pt', ptid))
+cids = load_cid2doc(['CID-PMID', 'CID-Patent'], limit=limit)
 
 counts = [len(v) for v in cids.values()]
 print(len(cids), 'compounds')
@@ -81,13 +67,19 @@ sparse.save_npz('adj.npz', adj_mat.tocsr(), compressed=True)
 
 # Create graph
 print('Creating graph...')
-G = nx.from_scipy_sparse_matrix(adj_mat)
+vcount = max(adj_mat.shape)
+sources, targets = adj_mat.nonzero()
+edgelist = list(zip(sources.tolist(), targets.tolist()))
+weights = [adj_mat[i,j] for i, j in edgelist]
+G = igraph.Graph(vcount, edgelist, edge_attrs={'weights': weights}, directed=False)
 
 # Find communities
 print('Finding communities...')
-# Doesn't use weights, but much faster than the other label prop algorithm
-comms = community.label_propagation_communities(G)
-# comms = community.label_propagation.asyn_lpa_communities(G, weight='weight')
-comms = list(comms)
+subgraphs = G.community_label_propagation(weights='weights')
+labels = subgraphs.membership
+comms = defaultdict(list)
+for i, label in enumerate(labels):
+    comms[label].append(i)
+
 with open('labels.dat', 'w') as f:
-    f.write('\n'.join([','.join(str(l) for l in labels) for labels in comms]))
+    f.write('\n'.join([','.join(str(id) for id in ids) for ids in comms.values()]))
