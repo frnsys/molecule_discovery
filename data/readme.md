@@ -2,6 +2,7 @@ At time of writing:
 
 - the PubChem compounds database has 134,825,000 compounds.
 - 1,832,286 compounds have associated PubMed articles.
+- There are 349,872,459 patent-CID associations across 6,826,637 unique patents.
 - 22,626,944 compounds across the PubMed and patent CID listings.
 - there are 8,659,712 PubMed articles associated with PubChem compounds.
 - there are 2,150,543 Open Access PubMed articles.
