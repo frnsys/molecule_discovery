@@ -2,7 +2,6 @@
 
 ```
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 ```
 
 # Compound clustering
@@ -109,4 +108,25 @@ cp -r ../rdkit $PYENV_PYTHON/envs/data/lib/python3.6/site-packages/rdkit
 # is where Python automatically looks for shared libraries
 sudo cp -r ../lib/libRDKit* /usr/lib/
 sudo cp -r $PYENV_PYTHON/lib/libboost* /usr/lib/
+```
+
+# Tensorflow setup
+
+```
+# System installation
+cd /tmp
+sudo apt install unzip
+wget https://github.com/bazelbuild/bazel/releases/download/0.16.0/bazel-0.16.0-installer-linux-x86_64.sh
+chmod +x bazel-0.16.0-installer-linux-x86_64.sh
+sudo ./bazel-0.16.0-installer-linux-x86_64.sh
+sudo pip3 install -U keras
+
+git clone https://github.com/tensorflow/tensorflow
+cd tensorflow
+./configure
+
+# optionally add --config=cuda for CUDA
+bazel build -c opt --copt=-mavx512f --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both -k //tensorflow/tools/pip_package:build_pip_package
+bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+sudo pip3 install /tmp/tensorflow_pkg/tensorflow-*-linux_x86_64.whl
 ```

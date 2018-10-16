@@ -12,7 +12,7 @@ def stream_file(path, limit=None):
 
 
 def stream_tokens(limit=None, titles_only=False):
-    for line in tqdm(stream_file('data/pubmed.dat', limit)):
+    for line in tqdm(stream_file('text/data/pubmed.dat', limit)):
         doc = json.loads(line)
         pmid = doc['pmid']
         toks = doc['toks']
@@ -28,7 +28,7 @@ def load_cid2doc(articles=True, patents=False, limit=None):
     """Group documents mentioning compounds"""
     cids = defaultdict(list)
     if articles:
-        for line in tqdm(stream_file('data/CID-PMID', limit)):
+        for line in tqdm(stream_file('text/data/CID-PMID', limit)):
             cid, pmid, _ = line.strip().split()
             cids[int(cid)].append(int(pmid))
     if patents:

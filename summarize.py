@@ -3,7 +3,7 @@ Summarize graph communities
 """
 import numpy as np
 from tqdm import tqdm
-from tfidf import tf_idf
+from text.tfidf import tf_idf
 from collections import defaultdict
 from data import stream_tokens, load_cid2doc
 

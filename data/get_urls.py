@@ -18,10 +18,3 @@ urls = get_urls(base)
 print(len(urls), 'urls')
 with open('pubchem.txt', 'w') as f:
     f.write('\n'.join(urls))
-
-# Get PubMed Open Access URLs
-base = '://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/'
-urls = get_urls(base)
-print(len(urls), 'urls')
-with open('pubmed.txt', 'w') as f:
-    f.write('\n'.join(urls))

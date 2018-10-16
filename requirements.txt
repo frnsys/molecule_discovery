@@ -1,7 +1,5 @@
-git+git://github.com/titipata/pubmed_parser
 requests==2.19.1
 lxml==3.5.0
 cssselect==1.0.3
 tqdm==4.26.0
-spacy==2.0.12
 numpy==1.15.2
