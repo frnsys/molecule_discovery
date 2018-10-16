@@ -50,7 +50,11 @@ Some code is adapted from <https://github.com/wengong-jin/icml18-jtnn>, an imple
 12. Jin, Wengong, Regina Barzilay, and Tommi Jaakkola. "Junction Tree Variational Autoencoder for Molecular Graph Generation." arXiv preprint arXiv:1802.04364 (2018).
 13. [What are the differences between community detection algorithms in igraph?](https://stackoverflow.com/questions/9471906/what-are-the-differences-between-community-detection-algorithms-in-igraph/)
 
+---
+
 # RDKit setup
+
+Instructions for a pyenv-virtualenv
 
 Preparation:
 
@@ -78,10 +82,9 @@ Get and install RDKit:
 (note: build this with a `pyenv` `virtualenv` activated to build for that environment)
 
 ```
-
 # http://www.rdkit.org/docs/Install.html
 RDKIT=Release_2018_03_4
-sudo apt install libeigen3-dev libsqlite3-dev libpython3-dev
+sudo apt install libeigen3-dev libsqlite3-dev libpython3-dev libcairo2-dev
 wget https://github.com/rdkit/rdkit/archive/${RDKIT}.tar.gz
 tar xzvf ${RDKIT}.tar.gz
 cd rdkit-$RDKIT
@@ -90,12 +93,20 @@ cd build
 cmake -D RDK_BUILD_CAIRO_SUPPORT=ON -D PYTHON_LIBRARY=$PYTHON_LIBRARY -D PYTHON_EXECUTABLE=$PYTHON_EXECUTABLE $PYTHON_INCLUDE_DIR=$PYTHON_INCLUDE_DIR -D BOOST_ROOT=$PYENV_PYTHON -D Boost_NO_SYSTEM_PATHS=ON ..
 make -j4
 make install
-rm ../lib/*.cmake
-cp -r ../lib/* $PYENV_PYTHON/lib/
-# Doesn't load in venv: cp -r ../rdkit ~/.pyenv/versions/3.6.6/lib/python3.6/site-packages/rdkit
+```
+
+Install components:
+
+```
+# Hacky, there has to be an easier way to specify where RDKit is built to?
 cp -r ../rdkit $PYENV_PYTHON/envs/data/lib/python3.6/site-packages/rdkit
 
-# Need to do this for each new terminal session
-# TODO anyway to setup a pyenv virtualenv postactivate hook?
-export LD_LIBRARY_PATH=$PYENV_PYTHON/lib:$LD_LIBRARY_PATH
+# We could copy to the pyenv lib folder but
+# would require settings LD_LIBRARY_PATH for each new terminal session
+# cp -r ../lib/libRDKit* $PYENV_PYTHON/lib/
+# export LD_LIBRARY_PATH=$PYENV_PYTHON/lib:$LD_LIBRARY_PATH
+# Alternatively, easier to just copy to /usr/lib which
+# is where Python automatically looks for shared libraries
+sudo cp -r ../lib/libRDKit* /usr/lib/
+sudo cp -r $PYENV_PYTHON/lib/libboost* /usr/lib/
 ```
