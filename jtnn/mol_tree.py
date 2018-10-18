@@ -7,12 +7,13 @@ from .chemutils import get_clique_mol, tree_decomp, get_mol, get_smiles, set_ato
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
 
+class SmilesFailure(Exception): pass
+
 def get_slots(smiles):
     mol = Chem.MolFromSmiles(smiles)
     return [(atom.GetSymbol(), atom.GetFormalCharge(), atom.GetTotalNumHs()) for atom in mol.GetAtoms()]
 
 class Vocab(object):
-
     def __init__(self, smiles_list):
         self.vocab = smiles_list
         self.vmap = {x:i for i,x in enumerate(self.vocab)}
@@ -85,16 +86,20 @@ class MolTreeNode(object):
             self.cand_mols = []
 
 class MolTree(object):
-
-    def __init__(self, smiles):
+    def __init__(self, smiles, skip_stereo=False):
         self.smiles = smiles
         self.mol = get_mol(smiles)
 
-        #Stereo Generation
-        mol = Chem.MolFromSmiles(smiles)
-        self.smiles3D = Chem.MolToSmiles(mol, isomericSmiles=True)
-        self.smiles2D = Chem.MolToSmiles(mol)
-        self.stereo_cands = decode_stereo(self.smiles2D)
+        # Sometimes the SMILES string fails to decode
+        # due to an RDKit error: "Can't kekulize mol"
+        if self.mol is None: raise SmilesFailure
+
+        # Stereo Generation
+        if not skip_stereo:
+            mol = Chem.MolFromSmiles(smiles)
+            self.smiles3D = Chem.MolToSmiles(mol, isomericSmiles=True)
+            self.smiles2D = Chem.MolToSmiles(mol)
+            self.stereo_cands = decode_stereo(self.smiles2D)
 
         cliques, edges = tree_decomp(self.mol)
         self.nodes = []
