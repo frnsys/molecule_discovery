@@ -34,7 +34,6 @@ if __name__ == '__main__':
     if not os.path.exists('smiles'):
         os.makedirs('smiles')
 
-    p = Pool()
     files = glob('sdf/*.sdf')
-    for _ in tqdm(p.imap(to_smiles, files), total=len(files)): pass
-    p.close()
+    with Pool() as p:
+        for _ in tqdm(p.imap(to_smiles, files), total=len(files)): pass

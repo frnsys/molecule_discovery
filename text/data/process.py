@@ -41,19 +41,17 @@ def extract(path):
 
 
 if __name__ == '__main__':
-    p = Pool()
     save_every = 5000
     print('Globbing...')
     stream = glob('pubmed/**/*.nxml')
-
     with open('pubmed.dat', 'a') as f:
         docs = []
-        for i, doc in enumerate(tqdm(p.imap(extract, stream))):
-            if doc is None:
-                continue
-            docs.append(json.dumps(doc))
-            if i > 0 and i % save_every == 0:
-                f.write('\n'.join(docs)+'\n')
-                docs = []
-        if docs: f.write('\n'.join(docs))
-    p.close()
+        with Pool() as p:
+            for i, doc in enumerate(tqdm(p.imap(extract, stream))):
+                if doc is None:
+                    continue
+                docs.append(json.dumps(doc))
+                if i > 0 and i % save_every == 0:
+                    f.write('\n'.join(docs)+'\n')
+                    docs = []
+            if docs: f.write('\n'.join(docs))

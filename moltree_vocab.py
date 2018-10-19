@@ -10,10 +10,10 @@ cids = load_cid2doc(articles=False, patents=True, limit=None)
 cids = set(cids.keys())
 print(len(cids), 'CIDs')
 
-smiles = []
 
 def to_vocab(path):
     vocab = set()
+    smiles = []
     with open(path, 'r') as f:
         for line in f:
             cid, smi = line.strip().split('\t')
@@ -28,14 +28,15 @@ def to_vocab(path):
                 vocab.add(c.smiles)
             smiles.append('{}\t{}'.format(cid, smi))
             cids.remove(cid)
-    return vocab
+    return vocab, smiles
 
-p = Pool()
+smiles = []
 vocab = set()
 files = glob('data/smiles/*.smi')
-for terms in tqdm(p.imap(to_vocab, files), total=len(files)):
-    vocab = vocab.union(terms)
-p.close()
+with Pool() as p:
+    for terms, smis in tqdm(p.imap(to_vocab, files), total=len(files)):
+        vocab = vocab.union(terms)
+        smiles.extend(smis)
 
 print('vocab size:', len(vocab))
 print('smiles:', len(smiles))
