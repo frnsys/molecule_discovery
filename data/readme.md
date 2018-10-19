@@ -13,3 +13,9 @@ To download PubChem compound SDF data (_warning: requires ~600GB of space_) and 
 To generate derived data (_warning: this will take a several hours, days even_):
 
 1. `python to_smiles.py` to convert SDF data for compounds into SMILES format. Results in a `smiles` folder.
+
+To generate a sample of smiles, e.g. for quickly testing:
+
+```bash
+shuf -n 100 smiles/Compound_000000001_000025000.smi | cut -f2 > smiles_sample.txt
+```
