@@ -3,3 +3,4 @@ lxml==3.5.0
 cssselect==1.0.3
 tqdm==4.26.0
 numpy==1.15.2
+python-igraph==0.7.1.post6
