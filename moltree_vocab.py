@@ -10,20 +10,24 @@ cids = load_cid2doc(articles=False, patents=True, limit=None)
 cids = set(cids.keys())
 print(len(cids), 'CIDs')
 
+smiles = []
+
 def to_vocab(path):
     vocab = set()
     with open(path, 'r') as f:
         for line in f:
-            cid, smiles = line.strip().split('\t')
+            cid, smi = line.strip().split('\t')
             if int(cid) not in cids:
                 continue
             try:
-                mol = MolTree(smiles, skip_stereo=True)
+                mol = MolTree(smi, skip_stereo=True)
             except SmilesFailure:
                 print('SmilesFailure with CID', cid)
                 continue
             for c in mol.nodes:
                 vocab.add(c.smiles)
+            smiles.append('{}\t{}'.format(cid, smi))
+            cids.remove(cid)
     return vocab
 
 p = Pool()
@@ -34,9 +38,13 @@ for terms in tqdm(p.imap(to_vocab, files), total=len(files)):
 p.close()
 
 print('vocab size:', len(vocab))
+print('smiles:', len(smiles))
 
 if not os.path.exists('data/jtnn'):
     os.makedirs('data/jtnn')
 
 with open('data/jtnn/vocab.dat', 'w') as f:
     f.write('\n'.join(vocab))
+
+with open('data/jtnn/smiles.txt', 'w') as f:
+    f.write('\n'.join(smiles))
