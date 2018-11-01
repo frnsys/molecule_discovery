@@ -6,6 +6,8 @@ pip install -r requirements.txt
 
 # Compound clustering
 
+_Note: the code for abandoned attempts are included, but because the rest of the code has changed since those attempts, they may not work out-of-the-box and are included only for reference._
+
 Attempts:
 
 - Training word2vec embeddings on PubMed titles and abstracts, with document representations assembled from these embeddings based on token TF-IDF scores, as described in [1], and then clustering using DBSCAN or OPTICS.
