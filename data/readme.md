@@ -6,7 +6,7 @@ bash download.sh
 
 __Warning: about 650GB of space is required.__
 
-Once files are downloaded, you'll need to generate the derived data (i.e. convert SDF data into SMILES; _warning: this will take a several hours, days even_):
+Once files are downloaded, you'll need to generate the derived data (i.e. convert SDF data into SMILES; __warning: this will take a several hours, days even__):
 
 ```
 python to_smiles.py
@@ -34,8 +34,8 @@ python to_smiles.py
 
 # ChEMBL
 
-- [Downloads page](ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/)
-- [Schema](ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/chembl_24_1_schema_documentation.txt)
+- [Downloads page](http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/)
+- [Schema](http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/chembl_24_1_schema_documentation.txt)
 
 # DrugBank
 
