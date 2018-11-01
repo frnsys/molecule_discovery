@@ -15,6 +15,7 @@ Attempts:
 - Generating a compound graph where nodes are compounds and an edge between compounds `A` and `B` represent co-mentions of `A` and `B` in some PubMed article or a patent. So instead of linking compounds based on the content of the articles they're mentioned in, they're linked solely on the virtue of being mentioned together in an article, under the assumption that this indicates some meaningful similarity. Once the graph is generated, a community detection algorithm (label propagation) is used to extract "clusters" from the graph.
     - See `graph.py` for this approach.
     - Right now, only using the PubMed articles rather than both articles and patents for memory reasons.
+    - Originally tried using community detection algorithms (label propagation, leading eigenvector, and multilevel), but the limiting factor is that the graph is very sparse, and it seems more reasonable just to take connected components to be clusters (the number of detected communities will be at minimum the number of connected components, and generally will be more). We encode cluster labels as one-hot vectors so ideally the number of detect clusters is relatively small (on the order of 10 or 100 rather than 1000 or 10000).
     - Outcome: (still testing)
 - Training a bidirectional LSTM autoencoder on PubMed articles to learn dense representations of the articles, then cluster on those. Because these representations are vectors, standard distance metrics can be used which opens up other clustering options.
     - See `autoencoder.py` for the autoencoder script.
@@ -22,12 +23,7 @@ Attempts:
 
 # Data sources
 
-- All PubChem compounds: <ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/SDF/>
-- Mapping of PubChem compound IDs to PubMed article IDs: <ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-PMID.gz>
-- Mapping of PubChem compound IDs to patent IDs: <ftp://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Patent.gz>
-- PubMed Open Access articles:
-    - <ftp://ftp.ncbi.nlm.nih.gov/pub/pmc/oa_bulk/>
-    - <https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/>
+See `data/readme.md`.
 
 # JTNN
 
@@ -48,6 +44,24 @@ Some code is adapted from <https://github.com/wengong-jin/icml18-jtnn>, an imple
 11. [Community Detection in Python](https://yoyoinwanderland.github.io/2017/08/08/Community-Detection-in-Python/#No-of-Community-Detection-Algorithms)
 12. Jin, Wengong, Regina Barzilay, and Tommi Jaakkola. "Junction Tree Variational Autoencoder for Molecular Graph Generation." arXiv preprint arXiv:1802.04364 (2018).
 13. [What are the differences between community detection algorithms in igraph?](https://stackoverflow.com/questions/9471906/what-are-the-differences-between-community-detection-algorithms-in-igraph/)
+14. [Summary of community detection algorithms in igraph 0.6](https://www.r-bloggers.com/summary-of-community-detection-algorithms-in-igraph-0-6/)
+15. Wang, Yong-Cui, et al. "Network predicting drug’s anatomical therapeutic chemical code." Bioinformatics 29.10 (2013): 1317-1324.
+16. Liu, Zhongyang, et al. "Similarity-based prediction for Anatomical Therapeutic Chemical classification of drugs by integrating multiple data sources." Bioinformatics 31.11 (2015): 1788-1795.
+17. Cheng, Xiang, et al. "iATC-mHyb: a hybrid multi-label classifier for predicting the classification of anatomical therapeutic chemicals." Oncotarget 8.35 (2017): 58494.
+18. Szklarczyk D, Santos A, von Mering C, Jensen LJ, Bork P, Kuhn M. STITCH 5: augmenting protein-chemical interaction networks with tissue and affinity data. Nucleic Acids Res. 2016 Jan 4;44(D1):D380-4.
+19. Wishart DS, Feunang YD, Guo AC, Lo EJ, Marcu A, Grant JR, Sajed T, Johnson D, Li C, Sayeeda Z, Assempour N, Iynkkaran I, Liu Y, Maciejewski A, Gale N, Wilson A, Chin L, Cummings R, Le D, Pon A, Knox C, Wilson M. DrugBank 5.0: a major update to the DrugBank database for 2018. Nucleic Acids Res. 2017 Nov 8. doi: 10.1093/nar/gkx1037.
+20. Kim S, Thiessen PA, Bolton EE, Chen J, Fu G, Gindulyte A, Han L, He J, He S, Shoemaker BA, Wang J, Yu B, Zhang J, Bryant SH. PubChem Substance and Compound databases. Nucleic Acids Res. 2016 Jan 4; 44(D1):D1202-13. Epub 2015 Sep 22 [PubMed PMID: 26400175] doi: 10.1093/nar/gkv951.
+21. Gilson, Michael K., et al. "BindingDB in 2015: a public database for medicinal chemistry, computational chemistry and systems pharmacology." Nucleic acids research 44.D1 (2015): D1045-D1053.
+22. The UniProt Consortium. UniProt: the universal protein knowledgebase. Nucleic Acids Res. 45: D158-D169 (2017)
+23. Gaulton A, Hersey A, Nowotka M, Bento AP, Chambers J, Mendez D, Mutowo P, Atkinson F, Bellis LJ, Cibrián-Uhalte E,
+Davies M, Dedman N, Karlsson A, Magariños MP, Overington JP, Papadatos G, Smit I, Leach AR. (2017)
+'The ChEMBL database in 2017.' Nucleic Acids Res., 45(D1) D945-D954.
+
+---
+
+```bash
+cut -f3 clusters.txt | uniq | head
+```
 
 ---
 
@@ -107,8 +121,18 @@ cp -r ../rdkit $PYENV_PYTHON/envs/data/lib/python3.6/site-packages/rdkit
 # export LD_LIBRARY_PATH=$PYENV_PYTHON/lib:$LD_LIBRARY_PATH
 # Alternatively, easier to just copy to /usr/lib which
 # is where Python automatically looks for shared libraries
-sudo cp -r ../lib/libRDKit* /usr/lib/
-sudo cp -r $PYENV_PYTHON/lib/libboost* /usr/lib/
+sudo cp -r ../lib/libRDKit* /usr/local/lib/
+sudo cp -r $PYENV_PYTHON/lib/libboost* /usr/local/lib/
+
+for f in /usr/local/lib/libRD*; do
+    t=${f##*/}
+    sudo ln -s $f /usr/lib/$t
+done
+for f in /usr/local/lib/libboost*; do
+    t=${f##*/}
+    sudo ln -s $f /usr/lib/$t
+done
+
 ```
 
 # Tensorflow setup

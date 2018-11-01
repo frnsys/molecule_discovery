@@ -1,3 +1,7 @@
+"""
+Generate SMILES strings
+from PubChem compounds (SDF files)
+"""
 import os
 from tqdm import tqdm
 from glob import glob

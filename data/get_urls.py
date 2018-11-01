@@ -16,5 +16,5 @@ def get_urls(base):
 base = '://ftp.ncbi.nlm.nih.gov/pubchem/Compound/CURRENT-Full/SDF/'
 urls = get_urls(base)
 print(len(urls), 'urls')
-with open('pubchem.txt', 'w') as f:
+with open('/tmp/pubchem.txt', 'w') as f:
     f.write('\n'.join(urls))
