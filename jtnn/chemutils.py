@@ -76,6 +76,10 @@ def tree_decomp(mol):
     if n_atoms == 1:
         return [[0]], []
 
+    n_bonds = mol.GetNumBonds()
+    if n_bonds == 0:
+        return [[i] for i in range(n_atoms)], []
+
     cliques = []
     for bond in mol.GetBonds():
         a1 = bond.GetBeginAtom().GetIdx()
