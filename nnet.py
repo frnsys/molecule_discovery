@@ -6,9 +6,8 @@ from tqdm import trange
 class NNet:
     def __init__(self, n_features, n_classes, layers=[8,8], learning_rate=0.01):
         self.keep_prob = tf.placeholder(tf.float32)
-        self.x = self._input(n_features)
+        self.x = tf.placeholder(tf.float32, shape=(None, n_features))
         net = self._net(n_features, layers)
-
 
         # output layer
         logits = tf.layers.dense(net, n_classes, activation=None)
@@ -24,10 +23,6 @@ class NNet:
         init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
         self.sess = tf.Session()
         self.sess.run(init)
-
-    def _input(self, n_features):
-        """Define input placeholder for the network"""
-        return tf.placeholder(tf.float32, shape=(None, n_features))
 
     def _net(self, n_features, layers):
         """Define the network"""
