@@ -16,6 +16,8 @@ from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Chem.Fingerprints import FingerprintMols
 from multiprocessing import Pool
 
+MIN_CLUSTER_SIZE = 200
+
 # Silence logs
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
@@ -70,6 +72,7 @@ for tid, actions in target_clusters.items():
         sizes.append(len(cs))
         n_clusters += 1
 print('Members:', sum(sizes))
+print('N clusters:', n_clusters)
 print('Unique compounds:', len(smiles))
 print('N receptors:', len(target_clusters))
 print('Mean cluster size:', np.mean(sizes))
@@ -113,6 +116,7 @@ def closest_cluster(c, sim_thresh=0.3):
         if closest[-1] >= sim_thresh:
             return c, tid, action
 
+print('Second clustering pass...')
 with Pool() as p:
     for res in tqdm(p.imap(closest_cluster, bd), total=len(bd)):
         if res is None: continue
@@ -128,6 +132,7 @@ for tid, actions in target_clusters.items():
         sizes.append(len(cs))
         n_clusters += 1
 print('Members:', sum(sizes))
+print('N clusters:', n_clusters)
 print('Unique compounds:', len(smiles))
 print('N receptors:', len(target_clusters))
 print('Mean cluster size:', np.mean(sizes))
@@ -136,18 +141,28 @@ print('1-mem clusters:', sum(1 for s in sizes if s == 1))
 print('2-mem clusters:', sum(1 for s in sizes if s == 2))
 
 labels = defaultdict(list)
-
+labels_idx = []
 for target, actions in target_clusters.items():
     for action, compounds in actions.items():
+        if len(compounds) < MIN_CLUSTER_SIZE:
+            continue
         label = '{}__{}'.format(target, action)
+        if label not in labels_idx:
+            labels_idx.append(label)
         for id in compounds:
-            labels[id].append(label)
+            labels[id].append(labels_idx.index(label))
+
+print('Clusters after filtering:', len(labels_idx))
+print('Compounds:', len(labels))
 
 # Create outputs for training
 lines = []
 for id, smi in smiles.items():
     for label in labels[id]:
-        lines.append('{}\t{}\t{}'.format(id, label, smi))
+        lines.append('{}\t{}\t{}'.format(id, smi, label))
 
-with open('clusters.txt', 'w') as f:
+with open('clusters.dat', 'w') as f:
     f.write('\n'.join(lines))
+
+with open('labels.dat', 'w') as f:
+    f.write('\n'.join(labels_idx))
