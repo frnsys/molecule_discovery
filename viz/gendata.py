@@ -32,7 +32,7 @@ print('Loading clusters...')
 clusters = defaultdict(lambda: {
     'members': []
 })
-labels = [l.strip() for l in open('labels.txt', 'r')]
+labels = [l.strip() for l in open('labels.dat', 'r')]
 
 def process_compound(line):
     id, smi, label = line.split('\t')
@@ -60,7 +60,7 @@ def process_compound(line):
 
 print('Processing compounds...')
 with Pool() as p:
-    with open('clusters.txt', 'r') as f:
+    with open('clusters.dat', 'r') as f:
         for label, compound in tqdm(p.imap(process_compound, f)):
             clusters[label]['members'].append(compound)
 

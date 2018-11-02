@@ -62,7 +62,11 @@ Davies M, Dedman N, Karlsson A, Magariños MP, Overington JP, Papadatos G, Smit 
 ---
 
 ```bash
-cut -f3 clusters.txt | uniq | head
+# Number of classes
+cat labels.dat | wc -l
+
+# Create training file for JTNN
+cut -f2,3 clusters.dat > training.dat
 ```
 
 ---
