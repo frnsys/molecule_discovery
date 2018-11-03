@@ -16,7 +16,7 @@ from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Chem.Fingerprints import FingerprintMols
 from multiprocessing import Pool
 
-MIN_CLUSTER_SIZE = 200
+MIN_CLUSTER_SIZE = 50
 
 # Silence logs
 lg = RDLogger.logger()
@@ -25,6 +25,7 @@ lg.setLevel(RDLogger.CRITICAL)
 ch = data.load_chembl()
 db = data.load_drugbank()
 bd = data.load_bindingdb()
+stitch = data.load_stitch()
 chembl2cid = data.load_chembl2cid()
 
 smiles = {}
@@ -80,18 +81,19 @@ print('Max cluster size:', max(sizes))
 print('1-mem clusters:', sum(1 for s in sizes if s == 1))
 print('2-mem clusters:', sum(1 for s in sizes if s == 2))
 
-def closest_cluster(c, sim_thresh=0.3):
+def closest_cluster(c, sim_thresh=0.5):
     try:
         mol = Chem.MolFromSmiles(c['smiles'])
         fpr = FingerprintMols.FingerprintMol(mol)
     except:
         return
 
+    results = []
     for t in c['targets']:
         tid = t['id']
 
-        # Only augment existing clusters
         if tid not in target_clusters:
+            # results.append((c, tid, 'unknown'))
             continue
 
         closest = (None, None)
@@ -99,9 +101,17 @@ def closest_cluster(c, sim_thresh=0.3):
             sims = []
             for c_ in compounds:
                 fpr_ = fingerprints.get(c_)
-                if fpr_ is None:
+                sim = None
+                if fpr_ is not None:
+                    sim = DataStructs.FingerprintSimilarity(fpr, fpr_)
+                stitch_sim = stitch[c['cid'], c_]
+                if stitch_sim is not None:
+                    if sim is None:
+                        stitch_sim = sim
+                    else:
+                        sim = max(stitch_sim, sim)
+                if sim is None:
                     continue
-                sim = DataStructs.FingerprintSimilarity(fpr, fpr_)
                 sims.append(sim)
 
             # Mean similarity to cluster's compounds
@@ -114,16 +124,21 @@ def closest_cluster(c, sim_thresh=0.3):
         # though we could also add them to any cluster
         # which has a mean similarity >= sim_thresh.
         if closest[-1] >= sim_thresh:
-            return c, tid, action
+            results.append((c, tid, action))
+    return results
 
 print('Second clustering pass...')
 with Pool() as p:
     for res in tqdm(p.imap(closest_cluster, bd), total=len(bd)):
         if res is None: continue
-        c, tid, action = res
-        id = c['cid']
-        smiles[id] = c['smiles']
-        target_clusters[tid][action].add(id)
+        for c, tid, action in res:
+            id = c['cid']
+            smiles[id] = c['smiles']
+            try:
+                target_clusters[tid][action].add(id)
+            except KeyError:
+                target_clusters[tid] = defaultdict(set)
+                target_clusters[tid][action].add(id)
 
 sizes = []
 n_clusters = 0
