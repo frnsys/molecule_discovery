@@ -1,6 +1,7 @@
 """
 Loaders for data
 """
+import os
 import re
 import csv
 import json
@@ -13,12 +14,15 @@ from lxml import etree
 from scipy import sparse
 from collections import defaultdict
 
+here_ = os.path.join(os.path.dirname(__file__))
+def here(p): return os.path.join(here_, p)
+
 # Full schema:
 # <ftp://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/latest/chembl_24_1_schema_documentation.txt>
-CHEMBL_DB = 'data/chembl_24/chembl_24_sqlite/chembl_24.db'
+CHEMBL_DB = here('data/chembl_24/chembl_24_sqlite/chembl_24.db')
 
 def load_drugbank():
-    tree = etree.parse('data/files/drugbank.xml')
+    tree = etree.parse(here('data/files/drugbank.xml'))
     ns = {'db': 'http://www.drugbank.ca'}
 
     drugs = []
@@ -129,7 +133,7 @@ def load_chembl():
 
 def load_bindingdb():
     organism_col = 'Target Source Organism According to Curator or DataSource'
-    df = pd.read_csv('data/bindingdb/BindingDB_All.tsv', delimiter='\t', quoting=csv.QUOTE_NONE, error_bad_lines=False, dtype={'PubChem CID': 'str'})
+    df = pd.read_csv(here('data/bindingdb/BindingDB_All.tsv'), delimiter='\t', quoting=csv.QUOTE_NONE, error_bad_lines=False, dtype={'PubChem CID': 'str'})
     df = df[df[organism_col].str.contains('human|homo sapiens', case=False, na=False)]
 
     # Remove spaces from column names
@@ -179,7 +183,8 @@ def load_compound_names():
                             MOLECULE_DICTIONARY.PREF_NAME is not null;
                         ''', conn)
     conn.close()
-    return {r['chembl_id']: r['name'] for r in  df.to_dict(orient='records')}
+    chembl2cid = load_chembl2cid()
+    return {chembl2cid.get(r['chembl_id'], r['chembl_id']): r['name'] for r in  df.to_dict(orient='records')}
 
 
 def load_atc_codes():
@@ -198,7 +203,7 @@ def load_atc_codes():
     for r in df.to_dict(orient='records'):
         id = chembl2cid.get(r['chembl_id'], r['chembl_id'])
         atcs[id].add(r['atc_code'])
-    pubchem = json.load(open('data/files/pubchem_atc.json', 'r'))
+    pubchem = json.load(open(here('data/files/pubchem_atc.json'), 'r'))
     for id, codes in pubchem.items():
         for code in codes:
             atcs[id].add(code)
@@ -206,7 +211,7 @@ def load_atc_codes():
 
 
 def load_protein_names():
-    df = pd.read_csv('data/files/uniprot_human.tsv', delimiter='\t')
+    df = pd.read_csv(here('data/files/uniprot_human.tsv'), delimiter='\t')
     df = df[['Entry', 'Protein names']]
     return {r['Entry']: r['Protein names'] for r in  df.to_dict(orient='records')}
 
@@ -214,7 +219,7 @@ def load_protein_names():
 def load_chembl2cid():
     chembl_re = re.compile('CHEMBL-?[0-9]+')
     lookup = {}
-    with open('data/files/CID-CHEMBL', 'r') as f:
+    with open(here('data/files/CID-CHEMBL'), 'r') as f:
         for line in tqdm(f):
             cid, part = line.strip().split(None, 1)
             chembl_id = chembl_re.search(part).group(0).replace('-', '')
@@ -230,12 +235,15 @@ class Similarity:
 
     def __getitem__(self, ids):
         a, b = ids
-        i, j = sorted([self.idx[a], self.idx[b]])
-        return self.mat[i,j]
+        try:
+            i, j = sorted([self.idx[a], self.idx[b]])
+            return self.mat[i,j]
+        except KeyError:
+            return None
 
 
 def load_stitch():
-    df = pd.read_csv('data/files/chemical_chemical.links.v5.0.tsv', delimiter='\t')
+    df = pd.read_csv(here('data/files/chemical_chemical.links.v5.0.tsv'), delimiter='\t')
     idx = {}
 
     # Extract CIDs
@@ -244,13 +252,17 @@ def load_stitch():
 
     # Prepare indices and similarity matrix
     for i, cid in enumerate(df['chemical1'].unique()):
+        # Remove leading zeros
+        cid = str(int(cid))
         idx[cid] = i
     n_cids = len(idx)
     mat = sparse.lil_matrix((n_cids, n_cids), dtype=np.float16)
 
     # Build similarity matrix
     for r in tqdm(df.itertuples()):
-        i, j = sorted([idx[r.chemical1], idx[r.chemical2]])
+        cid1 = str(int(r.chemical1))
+        cid2 = str(int(r.chemical2))
+        i, j = sorted([idx[cid1], idx[cid2]])
         mat[i,j] = r.textmining/1000
 
     return Similarity(mat, idx)
@@ -258,7 +270,7 @@ def load_stitch():
 
 def load_smiles(cids):
     smiles = {}
-    for fn in tqdm(glob('data/smiles/*.smi')):
+    for fn in tqdm(glob(here('data/smiles/*.smi'))):
         with open(fn, 'r') as f:
             for line in f:
                 cid, smi = line.strip().split()

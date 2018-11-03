@@ -2,6 +2,7 @@
 Generates HTML page to explore clusters
 """
 
+import sys; sys.path.append('../')
 import os
 import data
 import json
@@ -32,7 +33,7 @@ print('Loading clusters...')
 clusters = defaultdict(lambda: {
     'members': []
 })
-labels = [l.strip() for l in open('labels.dat', 'r')]
+labels = [l.strip() for l in open('../labels.dat', 'r')]
 
 def process_compound(line):
     id, smi, label = line.split('\t')
@@ -45,7 +46,7 @@ def process_compound(line):
 
     # Just generate all images
     # so we don't have to worry about them later
-    im_fname = 'viz/img/{}.png'.format(id)
+    im_fname = 'img/{}.png'.format(id)
     if not os.path.exists(im_fname):
         im = Draw.MolToImage(mol)
         im.save(im_fname)
@@ -60,7 +61,7 @@ def process_compound(line):
 
 print('Processing compounds...')
 with Pool() as p:
-    with open('clusters.dat', 'r') as f:
+    with open('../clusters.dat', 'r') as f:
         for label, compound in tqdm(p.imap(process_compound, f)):
             clusters[label]['members'].append(compound)
 
@@ -79,10 +80,10 @@ for label, info in tqdm(clusters.items()):
         atc_codes.add(atc)
 
 for label, cluster in clusters.items():
-    with open('viz/clusters/{}.json'.format(label), 'w') as f:
+    with open('clusters/{}.json'.format(label), 'w') as f:
         json.dump(cluster, f)
 
-with open('viz/data/clusters.json', 'w') as f:
+with open('data/clusters.json', 'w') as f:
     cluster_meta = []
     for label in sorted(list(clusters.keys())):
         cluster_meta.append({
@@ -94,13 +95,13 @@ with open('viz/data/clusters.json', 'w') as f:
 
 # Get ATC code descriptions
 try:
-    with open('data/files/atc_descs.json', 'r') as f:
+    with open('../data/files/atc_descs.json', 'r') as f:
         atc_descs = json.load(f)
 except FileNotFoundError:
     atc_descs = {}
 for code in tqdm(atc_codes):
     if code not in atc_descs:
         atc_descs[code] = get_atc_description(code)
-with open('data/files/atc_descs.json', 'w') as f:
+with open('../data/files/atc_descs.json', 'w') as f:
     json.dump(atc_descs, f)
-shutil.copyfile('data/files/atc_descs.json', 'viz/data/atc_descs.json')
+shutil.copyfile('../data/files/atc_descs.json', 'data/atc_descs.json')

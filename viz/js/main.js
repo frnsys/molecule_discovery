@@ -15,11 +15,12 @@ function get(path, onSuccess) {
 }
 
 const Compound = (props) => {
+  var formula = props.formula.match(/(\d+|[^\d]+)/g).map((f, i) => isNaN(f) ? f : <sub key={i}>{f}</sub>);
   return (
     <li>
-      {props.name || props.formula}
+      {props.name || formula}
       <div className='meta'>
-        <div>{props.formula}</div>
+        <div>{formula}</div>
         <div>ID: {props.id}</div>
         <div>ATC: {props.atc_codes.length > 0 ? props.atc_codes.join(', ') : 'Unknown'}</div>
         <img src={`img/${props.id}.png`} />
