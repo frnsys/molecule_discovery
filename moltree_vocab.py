@@ -18,7 +18,7 @@ def to_vocab(line):
 
 vocab = set()
 with Pool() as p:
-    with open('clusters.txt', 'r') as f:
+    with open('clusters.dat', 'r') as f:
         for voc in tqdm(filter(None, p.imap(to_vocab, f))):
             vocab = vocab.union(voc)
 print('vocab size:', len(vocab))
