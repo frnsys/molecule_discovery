@@ -10,9 +10,11 @@ git submodule update --remote
 1. Download necessary data: `cd data; bash download.sh`
 2. Generate compound clusters: `python cluster.py`
 3. Generate vocabulary for the JTNN VAE model: `python vocab.py`
-4. Train the models (TODO):
+4. Train the models:
     - JTNN VAE model
-    - ATC code predictor: `python atc_pred.py`
+        - First, pre-train: `python train.py jtnn_pre`
+        - Then train: `python train.py jtnn`
+    - ATC code predictor: `python train.py atc`
     - 3N-MCTS retrosynthesis planner (TODO)
 5. Sample compounds from the JTNN VAE model: `python sample.py`
     - Samples the JTNN VAE model
