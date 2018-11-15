@@ -1,0 +1,4 @@
+[submodule "jtnn"]
+	path = jtnn
+	url = https://github.com/frnsys/icml18-jtnn.git
+	branch = cvae
