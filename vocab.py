@@ -3,8 +3,7 @@ Generate vocabulary file for the JTNN model
 """
 
 # Add JTNN lib to PYTHONPATH
-import os
-import sys
+import os, sys
 sys.path.append(os.path.join(os.getcwd(), 'jtnn'))
 
 from tqdm import tqdm

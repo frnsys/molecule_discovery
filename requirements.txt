@@ -2,5 +2,5 @@ lxml==3.5.0
 cssselect==1.0.3
 tqdm==4.26.0
 numpy==1.15.2
-python-igraph==0.7.1.post6
 requests==2.20.0
+MolVS==0.1.1

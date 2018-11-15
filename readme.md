@@ -14,7 +14,7 @@ git submodule update --remote
     - JTNN VAE model
     - ATC code predictor: `python atc_pred.py`
     - 3N-MCTS retrosynthesis planner (TODO)
-5. Sample compounds from the JTNN VAE model (TODO): `python sample.py`
+5. Sample compounds from the JTNN VAE model: `python sample.py`
     - Samples the JTNN VAE model
     - Generates synthesis plans for the samples
     - Predicts the ATC codes for the samples
