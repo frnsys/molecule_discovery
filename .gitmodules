@@ -2,3 +2,6 @@
 	path = jtnn
 	url = https://github.com/frnsys/icml18-jtnn.git
 	branch = cvae
+[submodule "mcts"]
+	path = mcts
+	url = https://github.com/frnsys/retrosynthesis_planner.git

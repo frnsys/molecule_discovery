@@ -1,6 +1,7 @@
-# Add JTNN lib to PYTHONPATH
+# Add JTNN and 3N-MCTS lib to PYTHONPATH
 import os, sys
 sys.path.append(os.path.join(os.getcwd(), 'jtnn'))
+sys.path.append(os.path.join(os.getcwd(), 'mcts'))
 
 import json
 import molvs
@@ -10,6 +11,7 @@ from glob import glob
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
 from atc import ATCModel, code_lookup
+from mcts.plan import generate_plan
 
 # How many compounds to generate for each class
 N_SAMPLES = 100
@@ -63,14 +65,26 @@ for i, label in enumerate(labels):
 for label, smis in samples.items():
     ok = []
     for smi in smis:
+
+        # Validate SMILES
         errs = molvs.validate_smiles(smi)
         if errs:
             print('Validation error(s):', errs)
             continue
+
+        # Standardize SMILES
         smi = molvs.standardize_smiles(smi)
+
+        # Check if exists already
         if smi in pubchem:
             print('Exists in PubChem')
             continue
+
+        # Try to generate a synthesis plan
+        synth_plan = generate_plan(smi)
+        if synth_plan is None:
+            continue
+
         ok.append(smi)
     atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
     samples[label] = list(zip(ok, atc_codes))
