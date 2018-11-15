@@ -5,13 +5,31 @@ pip install -r requirements.txt
 git submodule update --remote
 ```
 
+# Usage
+
+1. Download necessary data: `cd data; bash download.sh`
+2. Generate compound clusters: `python cluster.py`
+3. Generate vocabulary for the JTNN VAE model: `python vocab.py`
+4. Train the models (TODO):
+    - JTNN VAE model
+    - ATC code predictor: `python atc_pred.py`
+    - 3N-MCTS retrosynthesis planner (TODO)
+5. Sample compounds from the JTNN VAE model (TODO): `python sample.py`
+    - Samples the JTNN VAE model
+    - Generates synthesis plans for the samples
+    - Predicts the ATC codes for the samples
+
+# Visualization
+
+To explore the generated clusters, see `viz/`.
+
 # Data sources
 
 See `data/readme.md`.
 
-# JTNN
+# JTNN VAE model
 
-Some code is adapted from <https://github.com/wengong-jin/icml18-jtnn>, an implementation of [12] licensed under the MIT license.
+The JTNN VAE model is adapted from <https://github.com/wengong-jin/icml18-jtnn>, an implementation of [12] licensed under the MIT license - the changes here add [a conditional VAE version](https://github.com/frnsys/icml18-jtnn/tree/cvae).
 
 # References
 
@@ -54,8 +72,6 @@ Davies M, Dedman N, Karlsson A, Magariños MP, Overington JP, Papadatos G, Smit 
 35. Wei, Jennifer N., David Duvenaud, and Alán Aspuru-Guzik. "Neural networks for the prediction of organic chemistry reactions." ACS central science 2.10 (2016): 725-732.
 36. Coley, Connor W., et al. "Prediction of organic reaction outcomes using machine learning." ACS central science 3.5 (2017): 434-443.
 37. Gupta, Anvita. "Predicting Chemical Reaction Type and Reaction Products with Recurrent Neural Networks."
-
-https://ndownloader.figshare.com/articles/5104873/versions/1
 
 ---
 
