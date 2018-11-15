@@ -9,6 +9,7 @@ import rdkit
 from glob import glob
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
+from atc import ATCModel, code_lookup
 
 # How many compounds to generate for each class
 N_SAMPLES = 100
@@ -33,7 +34,11 @@ for fn in tqdm(glob('data/smiles/*.smi')):
         for line in f:
             pubchem.add(line.strip())
 
-# Load model
+# Load ATC prediction model
+atc_model = ATCModel.load('data/atc')
+atc_lookup = code_lookup()
+
+# Load JTNN VAE model
 hidden_size = conf['hidden_size']
 latent_size = conf['latent_size']
 depth = conf['depth']
@@ -67,7 +72,8 @@ for label, smis in samples.items():
             print('Exists in PubChem')
             continue
         ok.append(smi)
-    samples[label] = ok
+    atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
+    samples[label] = list(zip(ok, atc_codes))
 
 # Save generated compounds
 with open('data/jtnn/compounds.json', 'w') as f:
