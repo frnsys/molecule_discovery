@@ -5,3 +5,5 @@
 smiles
 sdf
 misc
+dist.js*
+_scratch
