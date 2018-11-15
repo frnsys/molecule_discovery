@@ -83,6 +83,7 @@ outputs = inputs
 def decoder(helper, encoder_outputs, params, scope='decoder', reuse=None):
     with tf.variable_scope(scope, reuse=reuse):
         # Prepare attention mechanism
+        # TODO switch to Luong
         attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
             num_units=params['num_units'], memory=encoder_outputs)
         cell = tf.contrib.rnn.LSTMCell(num_units=params['num_units'])
