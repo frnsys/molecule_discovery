@@ -6,19 +6,24 @@ sys.path.append(os.path.join(os.getcwd(), 'mcts'))
 import json
 import molvs
 import torch
-import rdkit
+import pandas as pd
 from glob import glob
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
 from atc import ATCModel, code_lookup
 from mcts.plan import generate_plan
+from hashlib import md5
+
+from rdkit import Chem, RDLogger
+from rdkit.Chem import Draw
+from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 
 # How many compounds to generate for each class
 N_SAMPLES = 100
 
 # Silence rdkit
-lg = rdkit.RDLogger.logger()
-lg.setLevel(rdkit.RDLogger.CRITICAL)
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.CRITICAL)
 
 
 def load_jtnn():
@@ -45,6 +50,11 @@ def load_jtnn():
 
 
 if __name__ == '__main__':
+    # Create output dir if necessary
+    out_dir = 'data/sample'
+    if not os.path.exists(out_dir):
+        os.mkdirs(out_dir)
+
     # Load existing PubChem compounds to check against
     pubchem = set()
     for fn in tqdm(glob('data/smiles/*.smi')):
@@ -70,8 +80,10 @@ if __name__ == '__main__':
         samples[label] = smis
 
     # Validate and standardize generated compounds
+    results = []
     for label, smis in samples.items():
         ok = []
+        plans = []
         for smi in smis:
 
             # Validate SMILES
@@ -89,14 +101,38 @@ if __name__ == '__main__':
                 continue
 
             # Try to generate a synthesis plan
+            # From base compounds -> target
             synth_plan = generate_plan(smi)
             if synth_plan is None:
                 continue
+            base_compounds = synth_plan[-1].state
+            transforms = [rule for rule, _ in synth_plan[::-1]]
+            plans.append((base_compounds, transforms))
 
             ok.append(smi)
+
         atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
-        samples[label] = list(zip(ok, atc_codes))
+
+        for smi, synth_plan, atc_code in zip(ok, plans, atc_codes):
+            mol = Chem.MolFromSmiles(smi)
+            formula = CalcMolFormula(mol)
+
+            h = md5(smi.encode('utf8')).hexdigest()
+            im = Draw.MolToImage(mol)
+            im_path = os.path.join(out_dir, 'images', '{}.png'.format(h))
+            im.save(im_path)
+
+            base_compounds, transforms = synth_plan
+            results.append({
+                'label': label,
+                'smiles': smi,
+                'atc_code': atc_code,
+                'formula': formula,
+                'image': im_path,
+                'synthesis_base_compounds': ','.join(base_compounds),
+                'synthesis_transforms': ','.join(transforms)
+            })
 
     # Save generated compounds
-    with open('data/jtnn/compounds.json', 'w') as f:
-        json.dump(samples, f)
+    df = pd.DataFrame(results)
+    df.to_csv(os.path.join(out_dir, 'compounds.tsv'), sep='\t')
