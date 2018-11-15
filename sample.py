@@ -6,6 +6,8 @@ import json
 import molvs
 import torch
 import rdkit
+from glob import glob
+from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
 
 # How many compounds to generate for each class
@@ -23,6 +25,13 @@ vocab = Vocab(vocab)
 
 labels = [l.strip() for l in open('data/jtnn/labels.dat')]
 n_classes = len(labels)
+
+# Load existing PubChem compounds to check against
+pubchem = set()
+for fn in tqdm(glob('data/smiles/*.smi')):
+    with open(fn, 'r') as f:
+        for line in f:
+            pubchem.add(line.strip())
 
 # Load model
 hidden_size = conf['hidden_size']
@@ -51,8 +60,12 @@ for label, smis in samples.items():
     for smi in smis:
         errs = molvs.validate_smiles(smi)
         if errs:
+            print('Validation error(s):', errs)
             continue
         smi = molvs.standardize_smiles(smi)
+        if smi in pubchem:
+            print('Exists in PubChem')
+            continue
         ok.append(smi)
     samples[label] = ok
 
