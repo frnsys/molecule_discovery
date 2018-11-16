@@ -42,6 +42,12 @@ class ATCModel:
 
         self.sess = tf.Session()
         self.saver = tf.train.Saver()
+
+        tf.summary.scalar('loss', self.loss_op)
+        tf.summary.scalar('accuracy', self.acc_op)
+        self.summary = tf.summary.merge_all()
+        self.writer = tf.summary.FileWriter('/tmp/testing', self.sess.graph)
+
         init = tf.global_variables_initializer()
         self.sess.run(init)
 
@@ -62,8 +68,8 @@ class ATCModel:
             random.shuffle(training)
             x = np.array([s[0] for s in training])
             y = np.array([s[1] for s in training])
-            _, err, acc = self.sess.run(
-                [self.train_op, self.loss_op, self.acc_op],
+            summary, _, err, acc = self.sess.run(
+                [self.summary, self.train_op, self.loss_op, self.acc_op],
                 feed_dict={
                     self.x: x,
                     self.y: y,
@@ -75,6 +81,7 @@ class ATCModel:
             it.set_postfix(
                 loss=np.mean(losses[-10:]) if losses else None,
                 acc=np.mean(accuracies[-10:]) if losses else None)
+            self.writer.add_summary(summary, e)
         return losses
 
     def predict(self, smis):
