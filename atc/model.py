@@ -31,7 +31,7 @@ class ATCModel:
         # output layer
         logits = tf.layers.dense(net, n_classes, activation=None)
         probs = tf.nn.softmax(logits)
-        self.predict = tf.argmax(probs, axis=1)
+        self.predict_op = tf.argmax(probs, axis=1)
 
         self.y = tf.placeholder(tf.int64, shape=(None,))
         self.loss_op = tf.losses.sparse_softmax_cross_entropy(self.y, logits)
@@ -86,7 +86,7 @@ class ATCModel:
 
     def predict(self, smis):
         X = [process_smile(smi) for smi in smis]
-        return self.sess.run(self.predict, feed_dict={
+        return self.sess.run(self.predict_op, feed_dict={
             self.x: X,
             self.keep_prob: 1.0
         })
