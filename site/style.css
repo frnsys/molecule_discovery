@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css?family=Muli');
+
+html, body {
+  padding: 0;
+  margin: 2em;
+  font-family: 'Muli', sans-serif;
+  background: #eee;
+}
+
+body {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+main header {
+  cursor: pointer;
+}
+main header:hover {
+  background: #e6e237;
+}
+
+h1, h2 {
+  margin-bottom: 0;
+}
+
+h3 {
+  margin-top: 0;
+  font-size: 0.9em;
+  color: #444;
+}
+
+h4 {
+  margin: 0 0 3em 0;
+  font-size: 1.2em;
+  color: #555;
+}
+
+.atc_codes {
+  margin-bottom: 1em;
+}
+.group.atc_codes > li {
+  border: 1px solid #0ead02;
+}
+li img {
+  mix-blend-mode: multiply;
+  width: 100%;
+}
+
+header span {
+  color: #bbb;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.group > li {
+    font-size: 1em;
+    font-family: monospace;
+    padding: 0.2em;
+    margin: 0 0.3em 0.3em 0;
+    display: inline-block;
+    cursor: help;
+    border: 1px solid transparent;
+    vertical-align: top;
+}
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+.meta {
+    background: #e6e237;
+    color: #000;
+    padding: 0.5em;
+    border: 1px solid #141316;
+}
+
+.tip {
+    position: absolute;
+    display: none;
+}
+
+li:hover .tip {
+    display: block;
+}
+
+.compound {
+  width: 24%;
+}
+.compound .meta {
+  word-wrap: break-word;
+  min-height: 140px;
+}
+.compound .meta span {
+  color: red;
+}
+.compound .atc_code {
+  margin-left: 1em;
+}
+.compound:hover {
+    border: 1px solid blue;
+    background: #ffb6b6;
+}
+
+footer {
+  margin: 4em 0;
+  color: #555;
+}
+
+#sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0 1.5em;
+  background: rgba(57, 0, 255, 0.8);
+}
+#sticky h3 {
+  color: #fff;
+}
