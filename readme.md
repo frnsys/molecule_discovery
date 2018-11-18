@@ -26,6 +26,7 @@ git submodule update --remote
 # Visualization
 
 To explore the generated clusters, see `viz/`.
+To explore the generated compounds, see `site/`.
 
 # Data sources
 
