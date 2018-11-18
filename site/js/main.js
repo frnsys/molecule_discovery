@@ -19,7 +19,9 @@ const Compound = (props) => {
   return (
     <li className='compound'>
       <figure>
-        <img src={`img/${props.id}.png`} />
+        <a href={`http://molview.org/?q=${props.smiles}`} rel='noopener noreferrer' target='_blank'>
+          <img src={`img/${props.id}.png`} />
+        </a>
       </figure>
       <div className='meta'>
         <div>{formula}</div>
@@ -33,7 +35,6 @@ const Compound = (props) => {
             })}
           </ul>
         </div>
-        <div><a href={`http://molview.org/?q=${props.smiles}`} rel='noopener noreferrer' target='_blank'>View in 3D</a></div>
       </div>
     </li>
   );
