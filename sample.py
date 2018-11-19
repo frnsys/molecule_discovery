@@ -11,7 +11,7 @@ from glob import glob
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
 from atc import ATCModel, code_lookup
-from mcts.plan import generate_plan
+# from mcts.plan import generate_plan
 from hashlib import md5
 
 from rdkit import Chem, RDLogger
@@ -53,18 +53,15 @@ if __name__ == '__main__':
     # Create output dir if necessary
     out_dir = 'data/sample'
     if not os.path.exists(out_dir):
-        os.mkdirs(out_dir)
+        os.makedirs(out_dir)
+        os.makedirs(os.path.join(out_dir, 'images'))
 
     # Load existing PubChem compounds to check against
     pubchem = set()
-    for fn in tqdm(glob('data/smiles/*.smi')):
+    for fn in tqdm(glob('data/smiles/*.smi'), desc='Loading existing compounds'):
         with open(fn, 'r') as f:
             for line in f:
                 pubchem.add(line.strip())
-
-    # Load ATC prediction model
-    atc_model = ATCModel.load('data/atc')
-    atc_lookup = code_lookup()
 
     # Load JTNN model
     model, labels = load_jtnn()
@@ -72,7 +69,7 @@ if __name__ == '__main__':
     # Generate compounds
     samples = {}
     torch.manual_seed(0)
-    for i, label in enumerate(labels):
+    for i, label in tqdm(enumerate(labels), desc='Sampling'):
         smis = []
         for _ in range(N_SAMPLES):
             smi = model.sample_prior(prob_decode=True, class_=i)
@@ -102,18 +99,17 @@ if __name__ == '__main__':
 
             # Try to generate a synthesis plan
             # From base compounds -> target
-            synth_plan = generate_plan(smi)
-            if synth_plan is None:
-                continue
-            base_compounds = synth_plan[-1].state
-            transforms = [rule for rule, _ in synth_plan[::-1]]
-            plans.append((base_compounds, transforms))
+            # synth_plan = generate_plan(smi)
+            # if synth_plan is None:
+            #     continue
+            # base_compounds = synth_plan[-1].state
+            # transforms = [rule for rule, _ in synth_plan[::-1]]
+            # plans.append((base_compounds, transforms))
 
             ok.append(smi)
 
-        atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
-
-        for smi, synth_plan, atc_code in zip(ok, plans, atc_codes):
+        # for smi, synth_plan, atc_code in zip(ok, plans, atc_codes):
+        for smi in ok:
             mol = Chem.MolFromSmiles(smi)
             formula = CalcMolFormula(mol)
 
@@ -122,17 +118,22 @@ if __name__ == '__main__':
             im_path = os.path.join(out_dir, 'images', '{}.png'.format(h))
             im.save(im_path)
 
-            base_compounds, transforms = synth_plan
+            # base_compounds, transforms = synth_plan
             results.append({
                 'label': label,
                 'smiles': smi,
-                'atc_code': atc_code,
                 'formula': formula,
                 'image': im_path,
-                'synthesis_base_compounds': ','.join(base_compounds),
-                'synthesis_transforms': ','.join(transforms)
+                # 'atc_code': atc_code,
+                # 'synthesis_base_compounds': ','.join(base_compounds),
+                # 'synthesis_transforms': ','.join(transforms)
             })
 
     # Save generated compounds
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(out_dir, 'compounds.tsv'), sep='\t')
+
+    # Load ATC prediction model
+    # atc_model = ATCModel.load('data/atc')
+    # atc_lookup = code_lookup()
+    # atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
