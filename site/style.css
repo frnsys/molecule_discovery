@@ -92,7 +92,8 @@ li:hover .tip {
 }
 .compound .meta {
   word-wrap: break-word;
-  min-height: 140px;
+  min-height: 180px;
+  position: relative;
 }
 .compound .meta span {
   color: red;
@@ -115,9 +116,19 @@ footer {
   top: 0;
   left: 0;
   right: 0;
+  z-index: 1;
   padding: 0 1.5em;
   background: rgba(57, 0, 255, 0.8);
 }
 #sticky h3 {
   color: #fff;
+}
+
+.synthesis_plan {
+  line-height: 2;
+  position: absolute;
+  bottom: 0;
+}
+.synthesis_plan em {
+  color: #555;
 }

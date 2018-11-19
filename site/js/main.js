@@ -35,6 +35,9 @@ const Compound = (props) => {
             })}
           </ul>
         </div>
+        <div className='synthesis_plan'>{props.synthesis ?
+          <a href={`plans/${props.id}.png`} rel='noopener noreferrer' target='_blank'>Synthesis Plan</a>
+            : <em>Synthesis plan pending</em>}</div>
       </div>
     </li>
   );

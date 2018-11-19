@@ -8,9 +8,9 @@ import json
 import shutil
 import requests
 import lxml.html
-import pandas as pd
+from glob import glob
 from tqdm import tqdm
-from collections import Counter
+from collections import Counter, defaultdict
 
 URL = 'https://www.whocc.no/atc_ddd_index/'
 
@@ -26,13 +26,15 @@ atcs = data.load_atc_codes()
 
 labels = [l.strip() for l in open('../data/jtnn/labels.dat', 'r')]
 
-COMPOUNDS = pd.read_csv('../data/sample/compounds.tsv', delimiter='\t')
-groups = COMPOUNDS.groupby('label')
+COMPOUNDS = defaultdict(list)
+for fname in glob('../data/sample/*.json'):
+    mols = json.load(open(fname))
+    for mol in mols:
+        COMPOUNDS[mol['label']].append(mol)
 clusters = {}
 
 atc_codes = set()
-for label, compounds in tqdm(groups):
-    compounds = compounds.to_dict('records')
+for label, compounds in tqdm(COMPOUNDS.items()):
     for c in compounds:
         c['image'] = c['image'].split('/')[-1]
         c['id'] = c['image'].replace('.png', '')
@@ -63,6 +65,7 @@ with open('data/clusters.json', 'w') as f:
     json.dump(cluster_meta, f)
 
 shutil.copytree('../data/sample/images', 'img')
+shutil.copytree('../data/sample/plans', 'plans')
 
 # Get ATC code descriptions
 try:
