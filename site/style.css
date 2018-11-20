@@ -58,8 +58,8 @@ ul {
 }
 
 .group > li {
-    font-size: 1em;
     font-family: 'Fira Mono', monospace;
+    font-size: 0.7em;
     padding: 0.2em;
     margin: 0 0.3em 0.3em 0;
     display: inline-block;
@@ -132,4 +132,23 @@ footer {
 }
 .synthesis_plan em {
   color: #555;
+}
+
+
+@media only screen and (max-width: 1100px) {
+  .compound {
+    width: 32%;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .compound {
+    width: 48%;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .compound {
+    width: 100%;
+  }
 }
