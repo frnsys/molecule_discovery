@@ -23,6 +23,13 @@ main header:hover {
 h1, h2 {
   margin-bottom: 0;
 }
+h1 a, h1 a:visited {
+  text-decoration: none;
+  color: #000;
+}
+h1 a:hover {
+  color: blue;
+}
 
 h3 {
   margin-top: 0;
