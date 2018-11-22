@@ -78,6 +78,7 @@ Davies M, Dedman N, Karlsson A, Magariños MP, Overington JP, Papadatos G, Smit 
 36. Coley, Connor W., et al. "Prediction of organic reaction outcomes using machine learning." ACS central science 3.5 (2017): 434-443.
 37. Gupta, Anvita. "Predicting Chemical Reaction Type and Reaction Products with Recurrent Neural Networks."
 38. Plehiers, Pieter P., et al. "Automated reaction database and reaction network analysis: extraction of reaction templates using cheminformatics." Journal of cheminformatics 10.1 (2018): 11.
+39. MIT's [ASKCOS](http://askcos.mit.edu/) ("Automated System for Knowledge-based Continuous Organic Synthesis")
 
 ---
 
