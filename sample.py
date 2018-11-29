@@ -4,27 +4,15 @@ sys.path.append(os.path.join(os.getcwd(), 'jtnn'))
 sys.path.append(os.path.join(os.getcwd(), 'mcts'))
 
 import json
-import molvs
 import torch
-import pandas as pd
-from glob import glob
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
-from atc import ATCModel, code_lookup
-# from mcts.plan import generate_plan
-from hashlib import md5
-
-from rdkit import Chem, RDLogger
-from rdkit.Chem import Draw
-from rdkit.Chem.rdMolDescriptors import CalcMolFormula
+from datetime import datetime
 
 # How many compounds to generate for each class
-N_SAMPLES = 100
+N_SAMPLES = 20
 
-# Silence rdkit
-lg = RDLogger.logger()
-lg.setLevel(RDLogger.CRITICAL)
-
+BATCH_ID = datetime.utcnow().isoformat()
 
 def load_jtnn():
     # Load configs & data
@@ -51,89 +39,22 @@ def load_jtnn():
 
 if __name__ == '__main__':
     # Create output dir if necessary
-    out_dir = 'data/sample'
+    out_dir = os.path.join('data/sample', BATCH_ID)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-        os.makedirs(os.path.join(out_dir, 'images'))
-
-    # Load existing PubChem compounds to check against
-    pubchem = set()
-    for fn in tqdm(glob('data/smiles/*.smi'), desc='Loading existing compounds'):
-        with open(fn, 'r') as f:
-            for line in f:
-                pubchem.add(line.strip())
 
     # Load JTNN model
     model, labels = load_jtnn()
 
     # Generate compounds
-    samples = {}
-    torch.manual_seed(0)
-    for i, label in tqdm(enumerate(labels), desc='Sampling'):
-        smis = []
+    # torch.manual_seed(0)
+    for i, label in tqdm(enumerate(labels), desc='Sampling', total=len(labels)):
+        samples = []
         for _ in range(N_SAMPLES):
             smi = model.sample_prior(prob_decode=True, class_=i)
-            smis.append(smi)
-        samples[label] = smis
-
-    # Validate and standardize generated compounds
-    results = []
-    for label, smis in samples.items():
-        ok = []
-        plans = []
-        for smi in smis:
-
-            # Validate SMILES
-            errs = molvs.validate_smiles(smi)
-            if errs:
-                print('Validation error(s):', errs)
-                continue
-
-            # Standardize SMILES
-            smi = molvs.standardize_smiles(smi)
-
-            # Check if exists already
-            if smi in pubchem:
-                print('Exists in PubChem')
-                continue
-
-            # Try to generate a synthesis plan
-            # From base compounds -> target
-            # synth_plan = generate_plan(smi)
-            # if synth_plan is None:
-            #     continue
-            # base_compounds = synth_plan[-1].state
-            # transforms = [rule for rule, _ in synth_plan[::-1]]
-            # plans.append((base_compounds, transforms))
-
-            ok.append(smi)
-
-        # for smi, synth_plan, atc_code in zip(ok, plans, atc_codes):
-        for smi in ok:
-            mol = Chem.MolFromSmiles(smi)
-            formula = CalcMolFormula(mol)
-
-            h = md5(smi.encode('utf8')).hexdigest()
-            im = Draw.MolToImage(mol)
-            im_path = os.path.join(out_dir, 'images', '{}.png'.format(h))
-            im.save(im_path)
-
-            # base_compounds, transforms = synth_plan
-            results.append({
-                'label': label,
-                'smiles': smi,
-                'formula': formula,
-                'image': im_path,
-                # 'atc_code': atc_code,
-                # 'synthesis_base_compounds': ','.join(base_compounds),
-                # 'synthesis_transforms': ','.join(transforms)
+            samples.append({
+                'smiles': smi
             })
-
-    # Save generated compounds
-    df = pd.DataFrame(results)
-    df.to_csv(os.path.join(out_dir, 'compounds.tsv'), sep='\t')
-
-    # Load ATC prediction model
-    # atc_model = ATCModel.load('data/atc')
-    # atc_lookup = code_lookup()
-    # atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
+        fname = os.path.join(out_dir, '{}.json'.format(i))
+        with open(fname, 'w') as f:
+            json.dump(samples, f)

@@ -15,11 +15,11 @@ from datetime import datetime
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
 
-# Create output dir if necessary
-out_dir = 'data/sample'
-if not os.path.exists(out_dir):
-    os.makedirs(out_dir)
-    os.makedirs(os.path.join(out_dir, 'images'))
+# Get most recent batch
+out_dir = sorted(os.listdir('data/sample'))[-1]
+
+# Create images directory
+os.makedirs(os.path.join(out_dir, 'images'))
 
 # Load ATC prediction model
 atc_model = ATCModel.load('data/atc')
@@ -38,10 +38,11 @@ def process(fname):
     results = []
     label = int(os.path.basename(fname).replace('.dat', ''))
     with open(fname, 'r') as f:
-        smis = set([l.strip() for l in f])
+        data = json.load(fname)
 
     ok = []
-    for smi in smis:
+    for d in data:
+        smi = d['smiles']
 
         # Validate SMILES
         errs = molvs.validate_smiles(smi)
@@ -62,13 +63,6 @@ def process(fname):
     #print('Kept:', len(ok))
     atc_codes = [atc_lookup[i] for i in atc_model.predict(ok)]
 
-    # plans = []
-    # for smi in ok:
-    #     plan, complete = greedy_plan(smi)
-    #     plan = [[dict(m._asdict()) for m in n.state] for n in plan]
-    #     plans.append((plan, complete))
-
-    # for smi, synth_plan, atc_code in zip(ok, plans, atc_codes):
     for smi, atc_code in zip(ok, atc_codes):
         mol = Chem.MolFromSmiles(smi)
         formula = CalcMolFormula(mol)
@@ -88,7 +82,7 @@ def process(fname):
         })
 
     # Save generated compounds
-    with open(os.path.join(out_dir, '{}.json'.format(label)), 'w') as f:
+    with open(fname, 'w') as f:
         json.dump(results, f)
 
 for _ in tqdm(map(process, glob('data/samples/*.dat')), desc='Processing samples'):

@@ -7,6 +7,29 @@ pip install -r requirements.txt
 git submodule update --remote
 ```
 
+To run automatically and indefinitely:
+
+```
+# Install supervisor
+sudo apt install -y supervisor
+
+# Setup log file with permissions
+LOGFILE=/var/log/matter_farm_supervisord.log
+sudo touch $LOGFILE
+chmod 777 $LOGFILE
+
+# Copy config
+CONF=/etc/supervisor/conf.d/matter_farm.conf
+sudo cp supervisor.conf $CONF
+
+# Edit config
+APPDIR=$(dirname $(pwd))
+sudo sed -i "s|APPDIR|$APPDIR|g" $CONF
+
+# Start supervisor
+sudo service supervisor start
+```
+
 # Usage
 
 1. Download necessary data: `cd data; bash download.sh`

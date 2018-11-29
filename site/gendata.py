@@ -3,6 +3,8 @@ Generates HTML page to explore clusters
 """
 
 import sys; sys.path.append('../')
+
+import os
 import data
 import json
 import shutil
@@ -27,7 +29,7 @@ atcs = data.load_atc_codes()
 labels = [l.strip() for l in open('../data/jtnn/labels.dat', 'r')]
 
 COMPOUNDS = defaultdict(list)
-for fname in glob('../data/sample/*.json'):
+for fname in glob('../data/sample/**/*.json'):
     mols = json.load(open(fname))
     for mol in mols:
         COMPOUNDS[mol['label']].append(mol)
@@ -64,8 +66,24 @@ with open('data/clusters.json', 'w') as f:
         })
     json.dump(cluster_meta, f)
 
-shutil.copytree('../data/sample/images', 'img')
-shutil.copytree('../data/sample/plans', 'plans')
+
+# Copy new images/plan images
+existing_images = set(os.listdir('img'))
+existing_plans = set(os.listdir('plans'))
+for batch in os.listdir('../data/sample'):
+    batch = os.path.join('../data/sample', batch)
+    images = os.path.join(batch, 'images')
+    for f in os.listdir(images):
+        if f not in existing_images:
+            shutil.copyfile(f, os.path.join('img', f))
+            existing_images.add(f)
+
+    plans = os.path.join(batch, 'plans')
+    for f in os.listdir(plans):
+        if f not in existing_plans:
+            shutil.copyfile(f, os.path.join('plans', f))
+            existing_plans.add(f)
+
 
 # Get ATC code descriptions
 try:

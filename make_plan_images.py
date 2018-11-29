@@ -41,14 +41,18 @@ if __name__ == '__main__':
     import os
     import json
     from tqdm import tqdm
-    from glob import glob
     from multiprocessing import Pool
+
+    # Get most recent batch
+    out_dir = sorted(os.listdir('data/sample'))[-1]
+    files = [f for f in os.listdir(out_dir) if f.endswith('.json')]
+    os.makedirs(os.path.join(out_dir, 'plans'))
 
     def process(f):
         mols = json.load(open(f))
         for mol in mols:
             id = mol['image'].split('/')[-1].replace('.png', '')
-            out_path = 'data/sample/plans/{}.png'.format(id)
+            out_path = os.path.join(out_dir, 'plans/{}.png'.format(id))
             if os.path.exists(out_path): continue
             if 'synthesis' not in mol: continue
             compounds = {}
@@ -82,4 +86,4 @@ if __name__ == '__main__':
             img.save(out_path)
 
     with Pool() as p:
-        for _ in tqdm(p.imap(process, glob('data/sample/*.json'))): pass
+        for _ in tqdm(p.imap(process, files)): pass
