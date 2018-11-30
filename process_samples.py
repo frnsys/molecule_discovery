@@ -17,9 +17,12 @@ lg.setLevel(RDLogger.CRITICAL)
 
 # Get most recent batch
 out_dir = sorted(os.listdir('data/sample'))[-1]
+data_files = glob('data/sample/{}/*.json'.format(out_dir))
 
 # Create images directory
-os.makedirs(os.path.join(out_dir, 'images'))
+images_dir = os.path.join('data/sample', out_dir, 'images')
+if not os.path.exists(images_dir):
+    os.makedirs(images_dir)
 
 # Load ATC prediction model
 atc_model = ATCModel.load('data/atc')
@@ -36,13 +39,14 @@ for fn in tqdm(glob('data/smiles/*.smi'), desc='Loading existing compounds'):
 
 def process(fname):
     results = []
-    label = int(os.path.basename(fname).replace('.dat', ''))
+    label = int(os.path.basename(fname).replace('.json', ''))
     with open(fname, 'r') as f:
-        data = json.load(fname)
+        data = json.load(f)
 
     ok = []
     for d in data:
         smi = d['smiles']
+        if smi is None: continue
 
         # Validate SMILES
         errs = molvs.validate_smiles(smi)
@@ -69,7 +73,7 @@ def process(fname):
 
         h = md5(smi.encode('utf8')).hexdigest()
         im = Draw.MolToImage(mol)
-        im_path = os.path.join(out_dir, 'images', '{}.png'.format(h))
+        im_path = os.path.join(images_dir, '{}.png'.format(h))
         im.save(im_path)
 
         results.append({
@@ -85,5 +89,6 @@ def process(fname):
     with open(fname, 'w') as f:
         json.dump(results, f)
 
-for _ in tqdm(map(process, glob('data/samples/*.dat')), desc='Processing samples'):
+
+for _ in tqdm(map(process, data_files), total=len(data_files), desc='Processing samples'):
     pass

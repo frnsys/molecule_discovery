@@ -1,3 +1,4 @@
+from glob import glob
 from PIL import Image, ImageFont, ImageDraw
 from rdkit import Chem
 from rdkit.Chem import Draw
@@ -45,14 +46,16 @@ if __name__ == '__main__':
 
     # Get most recent batch
     out_dir = sorted(os.listdir('data/sample'))[-1]
-    files = [f for f in os.listdir(out_dir) if f.endswith('.json')]
-    os.makedirs(os.path.join(out_dir, 'plans'))
+    files = glob('data/sample/{}/*.json'.format(out_dir))
+    plans_dir = os.path.join('data/sample', out_dir, 'plans')
+    if not os.path.exists(plans_dir):
+        os.makedirs(plans_dir)
 
     def process(f):
         mols = json.load(open(f))
         for mol in mols:
             id = mol['image'].split('/')[-1].replace('.png', '')
-            out_path = os.path.join(out_dir, 'plans/{}.png'.format(id))
+            out_path = os.path.join(plans_dir, '{}.png'.format(id))
             if os.path.exists(out_path): continue
             if 'synthesis' not in mol: continue
             compounds = {}
@@ -86,4 +89,4 @@ if __name__ == '__main__':
             img.save(out_path)
 
     with Pool() as p:
-        for _ in tqdm(p.imap(process, files)): pass
+        for _ in tqdm(p.imap(process, files), total=len(files)): pass

@@ -8,6 +8,11 @@ import torch
 from tqdm import tqdm
 from jtnn import Vocab, JTNNVAE
 from datetime import datetime
+from timeout_decorator import TimeoutError, timeout
+
+# Don't spend more than this many seconds
+# generating a compound
+TIME_LIMIT = 30
 
 # How many compounds to generate for each class
 N_SAMPLES = 20
@@ -37,6 +42,11 @@ def load_jtnn():
     return model, labels
 
 
+@timeout(TIME_LIMIT)
+def sample(cls):
+    return model.sample_prior(prob_decode=True, class_=cls)
+
+
 if __name__ == '__main__':
     # Create output dir if necessary
     out_dir = os.path.join('data/sample', BATCH_ID)
@@ -51,10 +61,14 @@ if __name__ == '__main__':
     for i, label in tqdm(enumerate(labels), desc='Sampling', total=len(labels)):
         samples = []
         for _ in range(N_SAMPLES):
-            smi = model.sample_prior(prob_decode=True, class_=i)
-            samples.append({
-                'smiles': smi
-            })
+            try:
+                smi = sample(i)
+                if smi is not None:
+                    samples.append({
+                        'smiles': smi
+                    })
+            except TimeoutError:
+                pass
         fname = os.path.join(out_dir, '{}.json'.format(i))
         with open(fname, 'w') as f:
             json.dump(samples, f)

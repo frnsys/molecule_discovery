@@ -66,7 +66,6 @@ with open('data/clusters.json', 'w') as f:
         })
     json.dump(cluster_meta, f)
 
-
 # Copy new images/plan images
 existing_images = set(os.listdir('img'))
 existing_plans = set(os.listdir('plans'))
@@ -75,13 +74,15 @@ for batch in os.listdir('../data/sample'):
     images = os.path.join(batch, 'images')
     for f in os.listdir(images):
         if f not in existing_images:
-            shutil.copyfile(f, os.path.join('img', f))
+            path = os.path.join(images, f)
+            shutil.copyfile(path, os.path.join('img', f))
             existing_images.add(f)
 
     plans = os.path.join(batch, 'plans')
     for f in os.listdir(plans):
         if f not in existing_plans:
-            shutil.copyfile(f, os.path.join('plans', f))
+            path = os.path.join(plans, f)
+            shutil.copyfile(path, os.path.join('plans', f))
             existing_plans.add(f)
 
 

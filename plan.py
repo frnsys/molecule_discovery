@@ -4,6 +4,7 @@ import requests
 import lxml.html
 from collections import namedtuple
 from tqdm import tqdm
+from glob import glob
 
 Molecule = namedtuple('Molecule', ['smiles', 'is_terminal'])
 
@@ -39,7 +40,7 @@ def greedy_plan(target_smiles, max_depth=20):
     seen_states = []
     cur = Node([mol])
     path = [cur]
-    for _ in tqdm(range(max_depth), desc='Search'):
+    for _ in range(max_depth):
         if cur.state in seen_states:
             # In a loop
             continue
@@ -65,7 +66,7 @@ def greedy_plan(target_smiles, max_depth=20):
         if all(s.is_terminal for s in cur.state):
             break
     else:
-        print('Max depth reached')
+        # print('Max depth reached')
         return path, False
 
     return path, True
@@ -100,6 +101,6 @@ if __name__ == '__main__':
 
     # Get most recent batch
     out_dir = sorted(os.listdir('data/sample'))[-1]
-    files = [f for f in os.listdir(out_dir) if f.endswith('.json')]
+    files = glob('data/sample/{}/*.json'.format(out_dir))
     with Pool() as p:
-        for _ in tqdm(p.imap(process, files)): pass
+        for _ in tqdm(p.imap(process, files), total=len(files)): pass
