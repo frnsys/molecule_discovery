@@ -23,7 +23,7 @@ CONF=/etc/supervisor/conf.d/matter_farm.conf
 sudo cp supervisor.conf $CONF
 
 # Edit config
-APPDIR=$(dirname $(pwd))
+APPDIR=$(pwd)
 sudo sed -i "s|APPDIR|$APPDIR|g" $CONF
 
 # Start supervisor

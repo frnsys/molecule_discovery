@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Activate virtualenv
+source ~/.pyenv/versions/data/bin/activate
+
 while [ 1 ]; do
     # This one has to GPU unfortunately
     echo "Sampling..."
