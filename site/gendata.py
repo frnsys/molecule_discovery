@@ -37,9 +37,20 @@ clusters = {}
 
 atc_codes = set()
 for label, compounds in tqdm(COMPOUNDS.items()):
+    # Filter out duplicate compounds
+    seen = set()
+    uniq_compounds = []
     for c in compounds:
         c['image'] = c['image'].split('/')[-1]
-        c['id'] = c['image'].replace('.png', '')
+        hash = c['image'].replace('.png', '')
+        c['id'] = hash
+        if hash in seen:
+            continue
+        else:
+            seen.add(hash)
+            uniq_compounds.append(c)
+    compounds = uniq_compounds
+
     label = labels[label].replace('/', '_')
     uniprot_id, action = label.split('__')
     name = prots.get(uniprot_id)
