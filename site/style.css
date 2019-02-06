@@ -46,9 +46,12 @@ header a {
 .page {
   color: #fff;
   max-width: 720px;
-  margin: 2em auto;
+  margin: 2em auto 6em auto;
   font-size: 1.1em;
   line-height: 1.4;
+}
+.page h1 {
+  text-align: center;
 }
 
 footer {
