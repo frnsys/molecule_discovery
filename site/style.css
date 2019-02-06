@@ -112,6 +112,7 @@ figure img {
   border-bottom: 6px solid #030343;
   margin: 0;
   font-size: 2em;
+  word-wrap: anywhere;
 }
 .receptor {
   margin-bottom: 2em;
@@ -121,6 +122,7 @@ figure img {
   color: #fff;
   text-decoration: none;
   border-bottom: 2px solid #e6e237;
+  word-wrap: anywhere;
 }
 .receptor p {
   color: #030343;
@@ -168,3 +170,22 @@ figure img {
 .synthesis-plan em {
   color: #555;
 }
+
+@media only screen and (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, 32%);
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, 48%);
+  }
+}
+
+@media only screen and (max-width: 440px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, 100%);
+  }
+}
+
