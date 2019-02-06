@@ -21,6 +21,7 @@ while [ 1 ]; do
     echo "Updating site..."
     cd site
     python gendata.py
+    python gensite.py
     bash update.sh
     cd ..
 

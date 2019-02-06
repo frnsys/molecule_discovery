@@ -1,0 +1,29 @@
+{% from "compound.html" import compound %}
+{% extends 'layout.html' %}
+{% block content %}
+<div class="heading">
+    <h2>20 Most Recent Compounds</h2>
+</div>
+<ul class="grid">
+    {% for c in compounds %}
+        {{ compound(c, showReceptor=True) }}
+    {% endfor %}
+</ul>
+<div class="heading">
+    <h2>All Receptors</h2>
+    <p class="attribution">Disease data sourced from <a href="https://pharos.nih.gov/idg/targets/">Pharos</a>.</p>
+</div>
+<ul class="grid">
+    {% for id, r in receptors.items() %}
+        <li class="receptor">
+            <a href="/{{ id }}">{{ r.short_name }}</a>
+            {% if r.diseases %}
+                <p>May affect: {{ r.diseases[:3]|join('; ') }}...</p>
+            {% else %}
+                <p>No disease data available for this receptor.</p>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

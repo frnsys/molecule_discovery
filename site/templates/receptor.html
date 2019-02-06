@@ -1,0 +1,29 @@
+{% from "compound.html" import compound %}
+{% extends 'layout.html' %}
+{% block content %}
+<header class="receptor-meta">
+    <h2>These compounds may interact with:</h2>
+    <h1>{{ receptor.short_name }}</h1>
+    {% if receptor.diseases %}
+        <p><em>Potentially involved in</em>: {{receptor.diseases[:20]|join('; ')}}</p>
+        <p class="attribution">Disease data sourced from <a href="https://pharos.nih.gov/idg/targets/{{ receptor.id }}">Pharos</a>.</p>
+    {% else %}
+        <p>No disease data available for this receptor.</p>
+    {% endif %}
+</header>
+{% for action, compounds in receptor.compounds.items() %}
+    <div class="heading">
+        {% if action == 'unknown' %}
+            <h2>Unknown Action</h2>
+        {% else %}
+            <h2>{{ action|title }}</h2>
+        {% endif %}
+    </div>
+    <ul class="grid">
+        {% for c in compounds.members %}
+            {{ compound(c, showReceptor=False) }}
+        {% endfor %}
+    </ul>
+{% endfor %}
+{% endblock %}
+

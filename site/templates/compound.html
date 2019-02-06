@@ -1,0 +1,31 @@
+{% macro compound(c, showReceptor=False) -%}
+    <li class="compound">
+        <figure>
+            <a href="http://molview.org/?q={{c.smiles}}" rel='noopener noreferrer' target='_blank'>
+                <img src="/img/{{c.id}}.png" />
+            </a>
+        </figure>
+        <div class="meta">
+            <div><span>FORMULA:</span>{{c.formula}}</div>
+            <div><span>SMILES:</span> {{c.smiles}}</div>
+            <div><span>BIRTHDAY:</span> {{c.created_at}}</div>
+            <div><span>ATC:</span> {{c.atc_code}}
+                <ul class="atc-code">
+                    {% for desc in c.atc_code_descs %}
+                        <li>{{ desc }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if showReceptor %}
+                <div><span>RECEPTOR:</span> <a href="/{{ c.receptor.id }}">{{ c.receptor.name }}</a></div>
+            {% endif %}
+            <div class="synthesis-plan">
+                {% if c.synthesis %}
+                    <a href={`plans/${props.id}.png`} rel='noopener noreferrer' target='_blank'>Synthesis Plan</a>
+                {% else %}
+                    <em>Synthesis plan pending</em>
+                {% endif %}
+            </div>
+        </div>
+    </li>
+{%- endmacro %}

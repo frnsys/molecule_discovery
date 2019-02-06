@@ -64,7 +64,7 @@ for label, compounds in tqdm(COMPOUNDS.items()):
         atc_codes.add(atc)
 
 for label, cluster in clusters.items():
-    with open('clusters/{}.json'.format(label), 'w') as f:
+    with open('data/clusters/{}.json'.format(label), 'w') as f:
         json.dump(cluster, f)
 
 with open('data/clusters.json', 'w') as f:
